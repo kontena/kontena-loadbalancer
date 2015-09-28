@@ -14,19 +14,23 @@ function config_fail()
 	exit -1
 }
 
-if [ -n "$SSL_CERTS" ]; then
-  echo -e "${SSL_CERTS}" > /tmp/certs.pem
+if [ -n "$KONTENA_LB_SSL_CERTS" ]; then
+  echo "${KONTENA_LB_SSL_CERTS}" > /tmp/certs.pem
 
-  echo "[kontena-lb] splitting bundled certificates..."
+  echo -n "[kontena-lb] splitting bundled certificates..."
   cd /tmp
-  sed '/^$/d' certs.pem > certs_tmp.pem && csplit --elide-empty-files -s -f cert -b %02d_gen.pem certs_tmp.pem "/-----END * PRIVATE KEY-----/+1"
-  rm /etc/haproxy/certs/cert*_gen.pem
+  sed '/^$/d' certs.pem > certs_tmp.pem && csplit --elide-empty-files -s -f cert -b %02d_gen.pem certs_tmp.pem "/-----END .* PRIVATE KEY-----/+1"
+  mkdir -p /etc/haproxy/certs > /dev/null 2>&1
+  rm /etc/haproxy/certs/cert*_gen.pem > /dev/null 2>&1 || true
   mv cert*_gen.pem /etc/haproxy/certs/
-  [ -f cert00_gen.pem ] && curl -sL -X PUT http://$ETCD_NODE/v2/keys/kontena/haproxy/$KONTENA_SERVICE_NAME/certs -d value=true
-  rm cert*_gen.pem
-  echo "...done. New certificates updated into HAProxy."
+  curl -sL -X DELETE http://$ETCD_NODE/v2/keys/kontena/haproxy/$KONTENA_SERVICE_NAME/certs > /dev/null 2>&1
+  curl -sL -X PUT http://$ETCD_NODE/v2/keys/kontena/haproxy/$KONTENA_SERVICE_NAME/certs -d value=true > /dev/null 2>&1
+  rm cert*_gen.pem > /dev/null 2>&1 || true
+  echo "...done. Certificates updated into HAProxy."
 else
-  curl -sL -X DELETE http://$ETCD_NODE/v2/keys/kontena/haproxy/$KONTENA_SERVICE_NAME/certs
+  echo "[kontena-lb] No certificates found, disabling SSL support"
+  curl -sL -X DELETE http://$ETCD_NODE/v2/keys/kontena/haproxy/$KONTENA_SERVICE_NAME/certs > /dev/null 2>&1
+  curl -sL -X PUT http://$ETCD_NODE/v2/keys/kontena/haproxy/$KONTENA_SERVICE_NAME/certs -d dir=true > /dev/null 2>&1
 fi
 
 
