@@ -5,7 +5,6 @@ global
     group                   haproxy
     maxconn                 100000
     tune.ssl.default-dh-param 2048
-    # Updated cipher suites to cover FREAK attack
     ssl-default-bind-ciphers ECDHE-RSA-AES128-GCM-SHA256:ECDHE-ECDSA-AES128-GCM-SHA256:ECDHE-RSA-AES256-GCM-SHA384:ECDHE-ECDSA-AES256-GCM-SHA384:DHE-RSA-AES128-GCM-SHA256:DHE-DSS-AES128-GCM-SHA256:kEDH+AESGCM:ECDHE-RSA-AES128-SHA256:ECDHE-ECDSA-AES128-SHA256:ECDHE-RSA-AES128-SHA:ECDHE-ECDSA-AES128-SHA:ECDHE-RSA-AES256-SHA384:ECDHE-ECDSA-AES256-SHA384:ECDHE-RSA-AES256-SHA:ECDHE-ECDSA-AES256-SHA:DHE-RSA-AES128-SHA256:DHE-RSA-AES128-SHA:DHE-DSS-AES128-SHA256:DHE-RSA-AES256-SHA256:DHE-DSS-AES256-SHA:DHE-RSA-AES256-SHA:AES128-GCM-SHA256:AES256-GCM-SHA384:AES128-SHA256:AES256-SHA256:AES128-SHA:AES256-SHA:AES:CAMELLIA:DES-CBC3-SHA:!aNULL:!eNULL:!EXPORT:!DES:!RC4:!MD5:!PSK:!aECDH:!EDH-DSS-DES-CBC3-SHA:!EDH-RSA-DES-CBC3-SHA:!KRB5-DES-CBC3-SHA
 
 defaults
@@ -14,8 +13,6 @@ defaults
     option                  http-keep-alive
     option                  redispatch
     retries                 3
-    # disconnect slow handshake clients early, protect from
-    # resources exhaustion attacks
     timeout http-request    5s
     timeout queue           1m
     timeout connect         5s
@@ -55,7 +52,18 @@ listen http-in
 {{range $service := ls "/services"}}
 backend {{$service}}
     option                  forwardfor
-    balance roundrobin
+    {{$key := printf "/services/%s/custom_settings" $service}}  {{if exists $key}}
+    {{range $setting := split (getv $key) "\n" }}
+    {{$setting}}
+    {{end}}
+    {{end}}
+
+    {{$key := printf "/services/%s/balance" $service}}  {{if exists $key}}
+    balance                 {{getv $key}}
+    {{else}}
+    balance                 roundrobin
+    {{end}}
+
     {{$key := printf "/services/%s/virtual_path" $service}}  {{if exists $key}}
     reqrep ^([^\ :]*)\ {{getv $key}}[/]?(.*)     \1\ /\2
     {{end}}
@@ -64,11 +72,21 @@ backend {{$service}}
     {{end}}
 {{end}}
 
-# TCP Services
 {{range $service := ls "/tcp-services"}}
 listen {{$service}}
     mode tcp
-    balance roundrobin
+    {{$key := printf "/tcp-services/%s/balance" $service}}  {{if exists $key}}
+    balance                 {{getv $key}}
+    {{else}}
+    balance                 roundrobin
+    {{end}}
+
+    {{$key := printf "/tcp-services/%s/custom_settings" $service}}  {{if exists $key}}
+    {{range $setting := split (getv $key) "\n" }}
+    {{$setting}}
+    {{end}}
+    {{end}}
+
     bind *:{{printf "/tcp-services/%s/external_port" $service | getv}}
     {{range $upstream := ls (printf "/tcp-services/%s/upstreams" $service)}}
     server {{$upstream}} {{printf "/tcp-services/%s/upstreams/%s" $service $upstream | getv}} check
