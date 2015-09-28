@@ -1,4 +1,4 @@
 watch = true
-debug = true
+debug = false
 verbose = false
 quiet = true
