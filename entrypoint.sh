@@ -14,8 +14,8 @@ function config_fail()
 	exit -1
 }
 
-if [ -n "$KONTENA_LB_SSL_CERTS" ]; then
-  echo "${KONTENA_LB_SSL_CERTS}" > /tmp/certs.pem
+if [ -n "$SSL_CERTS" ]; then
+  echo "${SSL_CERTS}" > /tmp/certs.pem
 
   echo -n "[kontena-lb] splitting bundled certificates..."
   cd /tmp
