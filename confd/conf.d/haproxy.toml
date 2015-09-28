@@ -1,5 +1,6 @@
 [template]
 keys = [
+  "certs",
   "services",
   "tcp-services"
 ]
