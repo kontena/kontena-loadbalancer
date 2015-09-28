@@ -1,0 +1,4 @@
+watch = true
+debug = true
+verbose = false
+quiet = true

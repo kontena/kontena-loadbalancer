@@ -1,0 +1,92 @@
+global
+    daemon                  off
+    pidfile                 /var/run/haproxy.pid
+    user                    haproxy
+    group                   haproxy
+    maxconn                 100000
+    tune.ssl.default-dh-param 2048
+    # Updated cipher suites to cover FREAK attack
+    ssl-default-bind-ciphers ECDHE-RSA-AES128-GCM-SHA256:ECDHE-ECDSA-AES128-GCM-SHA256:ECDHE-RSA-AES256-GCM-SHA384:ECDHE-ECDSA-AES256-GCM-SHA384:DHE-RSA-AES128-GCM-SHA256:DHE-DSS-AES128-GCM-SHA256:kEDH+AESGCM:ECDHE-RSA-AES128-SHA256:ECDHE-ECDSA-AES128-SHA256:ECDHE-RSA-AES128-SHA:ECDHE-ECDSA-AES128-SHA:ECDHE-RSA-AES256-SHA384:ECDHE-ECDSA-AES256-SHA384:ECDHE-RSA-AES256-SHA:ECDHE-ECDSA-AES256-SHA:DHE-RSA-AES128-SHA256:DHE-RSA-AES128-SHA:DHE-DSS-AES128-SHA256:DHE-RSA-AES256-SHA256:DHE-DSS-AES256-SHA:DHE-RSA-AES256-SHA:AES128-GCM-SHA256:AES256-GCM-SHA384:AES128-SHA256:AES256-SHA256:AES128-SHA:AES256-SHA:AES:CAMELLIA:DES-CBC3-SHA:!aNULL:!eNULL:!EXPORT:!DES:!RC4:!MD5:!PSK:!aECDH:!EDH-DSS-DES-CBC3-SHA:!EDH-RSA-DES-CBC3-SHA:!KRB5-DES-CBC3-SHA
+
+defaults
+    mode                    http
+    option                  splice-auto
+    option                  http-keep-alive
+    option                  redispatch
+    retries                 3
+    # disconnect slow handshake clients early, protect from
+    # resources exhaustion attacks
+    timeout http-request    5s
+    timeout queue           1m
+    timeout connect         5s
+    timeout client          1m
+    timeout server          1m
+    timeout http-keep-alive 10s
+    timeout check           10s
+
+listen http-in
+    bind *:80
+    {{if exists "/certs"}}
+    bind *:443 ssl crt /etc/haproxy/certs/ no-sslv3
+    {{end}}
+    reqadd X-Forwarded-Proto:\ https if { ssl_fc }
+    reqadd X-Forwarded-Port:\ 443 if { ssl_fc }
+
+    {{range $service := ls "/services"}}
+    {{$key := printf "/services/%s/virtual_hosts" $service}}  {{if exists $key}}
+    {{range $host := split (getv $key) "," }}
+    acl host_{{$service}} hdr(host) -i {{$host}}
+    acl host_{{$service}} hdr(host) -i {{$host}}:80
+    {{end}}
+    {{end}}
+    {{$key := printf "/services/%s/virtual_path" $service}}  {{if exists $key}}
+    acl host_{{$service}} url_beg {{getv $key}}
+    {{end}}
+    {{if exists "/certs" }}
+    acl host_{{$service}} req_ssl_sni -i {{getv $key}}
+    acl host_{{$service}} req_ssl_sni -i {{getv $key}}:443
+    {{end}}
+    {{end}}
+
+    {{range $service := ls "/services"}}
+    use_backend {{$service}} if host_{{$service}}
+    {{end}}
+
+{{range $service := ls "/services"}}
+backend {{$service}}
+    option                  forwardfor
+    balance roundrobin
+    {{$key := printf "/services/%s/virtual_path" $service}}  {{if exists $key}}
+    reqrep ^([^\ :]*)\ {{getv $key}}[/]?(.*)     \1\ /\2
+    {{end}}
+    {{range $upstream := ls (printf "/services/%s/upstreams" $service)}}
+    server {{$upstream}} {{printf "/services/%s/upstreams/%s" $service $upstream | getv}} check
+    {{end}}
+{{end}}
+
+# TCP Services
+{{range $service := ls "/tcp-services"}}
+listen {{$service}}
+    mode tcp
+    balance roundrobin
+    bind *:{{printf "/tcp-services/%s/external_port" $service | getv}}
+    {{range $upstream := ls (printf "/tcp-services/%s/upstreams" $service)}}
+    server {{$upstream}} {{printf "/tcp-services/%s/upstreams/%s" $service $upstream | getv}} check
+    {{end}}
+{{end}}
+
+listen stats
+    mode http
+    bind 0.0.0.0:1000
+    stats enable
+    stats uri /
+    stats refresh 10s
+    stats show-node
+    stats show-legends
+
+    # if authentication is wanted
+    acl auth_ok http_auth(stats-auth)
+    http-request auth unless auth_ok
+
+userlist stats-auth
+    user stats insecure-password {{getenv "STATS_PASSWORD"}}
