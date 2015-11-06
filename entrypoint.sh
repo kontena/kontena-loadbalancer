@@ -23,7 +23,7 @@ if [ -n "$SSL_CERTS" ]; then
   mkdir -p /etc/haproxy/certs > /dev/null 2>&1
   rm /etc/haproxy/certs/cert*_gen.pem > /dev/null 2>&1 || true
   mv cert*_gen.pem /etc/haproxy/certs/
-  curl -sL -X DELETE http://$ETCD_NODE/v2/keys/kontena/haproxy/$KONTENA_SERVICE_NAME/certs > /dev/null 2>&1
+  curl -sL -X DELETE http://$ETCD_NODE/v2/keys/kontena/haproxy/$KONTENA_SERVICE_NAME/certs?dir=true > /dev/null 2>&1
   curl -sL -X PUT http://$ETCD_NODE/v2/keys/kontena/haproxy/$KONTENA_SERVICE_NAME/certs -d value=true > /dev/null 2>&1
   rm cert*_gen.pem > /dev/null 2>&1 || true
   echo "...done. Certificates updated into HAProxy."
