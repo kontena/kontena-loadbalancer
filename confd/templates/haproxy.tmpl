@@ -38,10 +38,10 @@ listen http-in
     {{end}}
     {{$key := printf "/services/%s/virtual_path" $service}}  {{if exists $key}}
     acl host_{{$service}} url_beg {{getv $key}}
-    {{end}}
     {{if exists "/certs" }}
     acl host_{{$service}} req_ssl_sni -i {{getv $key}}
     acl host_{{$service}} req_ssl_sni -i {{getv $key}}:443
+    {{end}}
     {{end}}
     {{end}}
 
