@@ -14,6 +14,10 @@ function config_fail()
 	exit -1
 }
 
+curl -sL -X PUT http://$ETCD_NODE/v2/keys/kontena/haproxy/$KONTENA_SERVICE_NAME/certs -d dir=true > /dev/null 2>&1
+rm -f /var/run/haproxy.pid > /dev/null 2>&1
+rm -f /etc/haproxy/haproxy.cfg > /dev/null 2>&1
+
 if [ -n "$SSL_CERTS" ]; then
   echo "${SSL_CERTS}" > /tmp/certs.pem
 
@@ -23,16 +27,13 @@ if [ -n "$SSL_CERTS" ]; then
   mkdir -p /etc/haproxy/certs > /dev/null 2>&1
   rm /etc/haproxy/certs/cert*_gen.pem > /dev/null 2>&1 || true
   mv cert*_gen.pem /etc/haproxy/certs/
-  curl -sL -X DELETE http://$ETCD_NODE/v2/keys/kontena/haproxy/$KONTENA_SERVICE_NAME/certs?dir=true > /dev/null 2>&1
-  curl -sL -X PUT http://$ETCD_NODE/v2/keys/kontena/haproxy/$KONTENA_SERVICE_NAME/certs -d value=true > /dev/null 2>&1
+  curl -sL -X PUT http://$ETCD_NODE/v2/keys/kontena/haproxy/$KONTENA_SERVICE_NAME/certs/bundle -d value=true > /dev/null 2>&1
   rm cert*_gen.pem > /dev/null 2>&1 || true
   echo "...done. Certificates updated into HAProxy."
 else
   echo "[kontena-lb] No certificates found, disabling SSL support"
-  curl -sL -X DELETE http://$ETCD_NODE/v2/keys/kontena/haproxy/$KONTENA_SERVICE_NAME/certs > /dev/null 2>&1
-  curl -sL -X PUT http://$ETCD_NODE/v2/keys/kontena/haproxy/$KONTENA_SERVICE_NAME/certs -d dir=true > /dev/null 2>&1
+	curl -sL -X DELETE http://$ETCD_NODE/v2/keys/kontena/haproxy/$KONTENA_SERVICE_NAME/certs/bundle > /dev/null 2>&1
 fi
-
 
 # Loop until confd has updated the haproxy config
 n=0
