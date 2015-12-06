@@ -30,43 +30,52 @@ listen http-in
     reqadd X-Forwarded-Port:\ 443 if { ssl_fc }
 
     {{range $service := ls "/services"}}
-    {{$key := printf "/services/%s/virtual_hosts" $service}}  {{if exists $key}}
-    {{range $host := split (getv $key) "," }}
-    acl host_{{$service}} hdr(host) -i {{$host}}
-    acl host_{{$service}} hdr(host) -i {{$host}}:80
-    {{end}}
-    {{end}}
-    {{$key := printf "/services/%s/virtual_path" $service}}  {{if exists $key}}
-    acl host_{{$service}} url_beg {{getv $key}}
-    {{if exists "/certs" }}
-    acl host_{{$service}} req_ssl_sni -i {{getv $key}}
-    acl host_{{$service}} req_ssl_sni -i {{getv $key}}:443
-    {{end}}
-    {{end}}
-    {{end}}
+      {{$virtual_hosts := printf "/services/%s/virtual_hosts" $service}}
+      {{if exists $virtual_hosts}}
+        {{range $host := split (getv $virtual_hosts) "," }}
+          acl host_{{$service}} hdr(host) -i {{$host}}
+          acl host_{{$service}} hdr(host) -i {{$host}}:80
+          {{if exists "/certs" }}
+          acl host_{{$service}} req_ssl_sni -i {{getv $host}}
+          acl host_{{$service}} req_ssl_sni -i {{getv $host}}:443
+          {{end}}
+        {{end}}
+      {{end}}
 
-    {{range $service := ls "/services"}}
-    use_backend {{$service}} if host_{{$service}}
+      {{$virtual_path := printf "/services/%s/virtual_path" $service}}
+      {{if exists $virtual_path}}
+        acl host_{{$service}}_path url_beg {{getv $virtual_path}}
+        {{if exists $virtual_hosts}}
+        use_backend {{$service}} if host_{{$service}} host_{{$service}}_path
+        {{else}}
+        use_backend {{$service}} if host_{{$service}}_path
+        {{end}}
+      {{else}}
+        use_backend {{$service}} if host_{{$service}}
+      {{end}}
     {{end}}
 
 {{range $service := ls "/services"}}
 backend {{$service}}
     option                  forwardfor
-    {{$key := printf "/services/%s/custom_settings" $service}}  {{if exists $key}}
-    {{range $setting := split (getv $key) "\n" }}
-    {{$setting}}
-    {{end}}
+    {{$custom_settings := printf "/services/%s/custom_settings" $service}}
+    {{if exists $custom_settings}}
+      {{range $setting := split (getv $custom_settings) "\n" }}
+        {{$setting}}
+      {{end}}
     {{end}}
 
-    {{$key := printf "/services/%s/balance" $service}}  {{if exists $key}}
-    balance                 {{getv $key}}
+    {{$balance := printf "/services/%s/balance" $service}}
+    {{if exists $balance}}
+    balance                 {{getv $balance}}
     {{else}}
     balance                 roundrobin
     {{end}}
 
-    {{$key := printf "/services/%s/virtual_path" $service}}  {{if exists $key}}
-    reqrep ^([^\ :]*)\ {{getv $key}}[/]?(.*)     \1\ /\2
+    {{$virtual_path := printf "/services/%s/virtual_path" $service}}  {{if exists $virtual_path}}
+    reqrep ^([^\ :]*)\ {{getv $virtual_path}}[/]?(.*)     \1\ /\2
     {{end}}
+
     {{range $upstream := ls (printf "/services/%s/upstreams" $service)}}
     server {{$upstream}} {{printf "/services/%s/upstreams/%s" $service $upstream | getv}} check
     {{end}}
@@ -75,16 +84,18 @@ backend {{$service}}
 {{range $service := ls "/tcp-services"}}
 listen {{$service}}
     mode tcp
-    {{$key := printf "/tcp-services/%s/balance" $service}}  {{if exists $key}}
-    balance                 {{getv $key}}
+    {{$balance := printf "/tcp-services/%s/balance" $service}}
+    {{if exists $balance}}
+    balance                 {{getv $balance}}
     {{else}}
-    balance                 roundrobin
+    balance                 leastconn
     {{end}}
 
-    {{$key := printf "/tcp-services/%s/custom_settings" $service}}  {{if exists $key}}
-    {{range $setting := split (getv $key) "\n" }}
-    {{$setting}}
-    {{end}}
+    {{$custom_settings := printf "/tcp-services/%s/custom_settings" $service}}
+    {{if exists $custom_settings}}
+      {{range $setting := split (getv $custom_settings) "\n" }}
+        {{$setting}}
+      {{end}}
     {{end}}
 
     bind *:{{printf "/tcp-services/%s/external_port" $service | getv}}
