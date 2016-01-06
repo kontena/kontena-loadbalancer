@@ -14,6 +14,8 @@ function config_fail()
 	exit -1
 }
 
+curl -sL -X PUT http://$ETCD_NODE/v2/keys/kontena/haproxy/$KONTENA_SERVICE_NAME/services -d dir=true > /dev/null 2>&1
+curl -sL -X PUT http://$ETCD_NODE/v2/keys/kontena/haproxy/$KONTENA_SERVICE_NAME/tcp-services -d dir=true > /dev/null 2>&1
 curl -sL -X PUT http://$ETCD_NODE/v2/keys/kontena/haproxy/$KONTENA_SERVICE_NAME/certs -d dir=true > /dev/null 2>&1
 rm -f /var/run/haproxy.pid > /dev/null 2>&1
 rm -f /etc/haproxy/haproxy.cfg > /dev/null 2>&1
