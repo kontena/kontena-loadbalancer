@@ -18,5 +18,6 @@ EXPOSE 80 443
 
 ADD entrypoint.sh /entrypoint.sh
 ADD confd /etc/confd
+ADD bin/* /usr/local/bin/
 
 ENTRYPOINT ["/entrypoint.sh"]

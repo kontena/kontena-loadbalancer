@@ -1,4 +1,2 @@
 watch = true
-debug = false
-verbose = false
-quiet = true
+log-level = "info"
