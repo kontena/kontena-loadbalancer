@@ -1,0 +1,31 @@
+etcd:
+  image: kontena/etcd:2.2.1
+  command: --listen-client-urls http://172.17.0.1:2379,http://localhost:2379 --advertise-client-urls http://172.17.0.1:2379,http://localhost:2379
+  net: host
+lb:
+  build: .
+  command: -log-level=debug
+  ports:
+    - 8180:80
+    - 8443:443
+  environment:
+    - KONTENA_SERVICE_NAME=lb
+  links:
+    - service-a
+    - service-b
+    - service-c
+
+service-a:
+  build: test/server
+  container_name: service-a
+  hostname: service-a
+
+service-b:
+  build: test/server
+  container_name: service-b
+  hostname: service-b
+
+service-c:
+  build: test/server
+  container_name: service-c
+  hostname: service-c
