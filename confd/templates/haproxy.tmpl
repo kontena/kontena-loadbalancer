@@ -29,6 +29,9 @@ listen http-in
     reqadd X-Forwarded-Proto:\ https if { ssl_fc }
     reqadd X-Forwarded-Port:\ 443 if { ssl_fc }
 
+    errorfile 502 /etc/haproxy/errors/502.http
+    errorfile 503 /etc/haproxy/errors/503.http
+
     {{range $service := ls "/services"}}
       {{$virtual_hosts := printf "/services/%s/virtual_hosts" $service}}
       {{if exists $virtual_hosts}}
