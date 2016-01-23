@@ -9,9 +9,9 @@ setup() {
 }
 
 @test "supports virtual_path" {
-  etcdctl set /kontena/haproxy/lb/services/service-a/virtual_path /a
+  etcdctl set /kontena/haproxy/lb/services/service-a/virtual_path /a/
   etcdctl set /kontena/haproxy/lb/services/service-a/upstreams/server service-a:9292
-  run curl -s http://localhost:8180/a
+  run curl -s http://localhost:8180/a/
   [ "${lines[0]}" = "service-a" ]
   run curl -s http://localhost:8180/a/virtual_path
   [ "${lines[0]}" = "service-a" ]
@@ -51,4 +51,25 @@ setup() {
   run curl -s -H "Host: api.bar.com" http://localhost:8180/c
   [ "$status" -eq 0 ]
   [ "${lines[0]}" = "service-c" ]
+}
+
+@test "on duplicate virtual_hosts first one in alphabets wins" {
+  etcdctl set /kontena/haproxy/lb/services/service-b/virtual_hosts www.bar.com
+  etcdctl set /kontena/haproxy/lb/services/service-b/upstreams/server service-b:9292
+
+  etcdctl set /kontena/haproxy/lb/services/service-c/virtual_hosts www.bar.com
+  etcdctl set /kontena/haproxy/lb/services/service-c/upstreams/server service-c:9292
+
+  run curl -s http://localhost:8180
+  [ "$status" -eq 0 ]
+  [ $(expr "$output" : ".*Service Unavailable.*") -ne 0 ]
+
+  run curl -s -H "Host: www.bar.com" http://localhost:8180/
+  [ "$status" -eq 0 ]
+  [ "${lines[0]}" = "service-b" ]
+}
+
+@test "returns custom error page" {
+  run curl -s http://localhost:8180/invalid/
+  [ $(expr "$output" : ".*Kontena Load Balancer.*") -ne 0 ]
 }
