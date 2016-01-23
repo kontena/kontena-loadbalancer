@@ -19,5 +19,6 @@ EXPOSE 80 443
 ADD entrypoint.sh /entrypoint.sh
 ADD confd /etc/confd
 ADD bin/* /usr/local/bin/
+ADD errors/* /etc/haproxy/errors/
 
 ENTRYPOINT ["/entrypoint.sh"]
