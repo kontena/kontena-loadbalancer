@@ -53,6 +53,21 @@ setup() {
   [ "${lines[0]}" = "service-c" ]
 }
 
+@test "handles empty upstreams" {
+  etcdctl set /kontena/haproxy/lb/services/service-b/virtual_hosts www.bar.com
+
+  etcdctl set /kontena/haproxy/lb/services/service-c/virtual_hosts api.bar.com
+  etcdctl set /kontena/haproxy/lb/services/service-c/upstreams/server service-c:9292
+
+  run curl -s -H "Host: www.bar.com" http://localhost:8180
+  [ "$status" -eq 0 ]
+  [ $(expr "$output" : ".*Service Unavailable.*") -ne 0 ]
+
+  run curl -s -H "Host: api.bar.com" http://localhost:8180/
+  [ "$status" -eq 0 ]
+  [ "${lines[0]}" = "service-c" ]
+}
+
 @test "on duplicate virtual_hosts first one in alphabets wins" {
   etcdctl set /kontena/haproxy/lb/services/service-b/virtual_hosts www.bar.com
   etcdctl set /kontena/haproxy/lb/services/service-b/upstreams/server service-b:9292

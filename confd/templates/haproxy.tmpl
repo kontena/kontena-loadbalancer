@@ -33,6 +33,9 @@ listen http-in
     errorfile 503 /etc/haproxy/errors/503.http
 
     {{range $service := ls "/services"}}
+    {{$upstreams := printf "/services/%s/upstreams/*" $service }}
+    {{$upstream_servers := gets $upstreams }} {{$upstream_len := len $upstreams}}
+    {{if ne $upstream_len 0}}
       {{$virtual_hosts := printf "/services/%s/virtual_hosts" $service}}
       {{if exists $virtual_hosts}}
         {{range $host := split (getv $virtual_hosts) "," }}
@@ -57,8 +60,12 @@ listen http-in
         use_backend {{$service}} if host_{{$service}}
       {{end}}
     {{end}}
+    {{end}}
 
 {{range $service := ls "/services"}}
+{{$upstreams := printf "/services/%s/upstreams/*" $service }}
+{{$upstream_servers := gets $upstreams }} {{$upstream_len := len $upstreams}}
+{{if ne $upstream_len 0}}
 backend {{$service}}
     option                  forwardfor
     {{$custom_settings := printf "/services/%s/custom_settings" $service}}
@@ -83,8 +90,12 @@ backend {{$service}}
     server {{$upstream}} {{printf "/services/%s/upstreams/%s" $service $upstream | getv}} check
     {{end}}
 {{end}}
+{{end}}
 
 {{range $service := ls "/tcp-services"}}
+{{$upstreams := printf "/services/%s/upstreams/*" $service }}
+{{$upstream_servers := gets $upstreams }} {{$upstream_len := len $upstreams}}
+{{if ne $upstream_len 0}}
 listen {{$service}}
     mode tcp
     {{$balance := printf "/tcp-services/%s/balance" $service}}
@@ -105,6 +116,7 @@ listen {{$service}}
     {{range $upstream := ls (printf "/tcp-services/%s/upstreams" $service)}}
     server {{$upstream}} {{printf "/tcp-services/%s/upstreams/%s" $service $upstream | getv}} check
     {{end}}
+{{end}}
 {{end}}
 
 listen stats
