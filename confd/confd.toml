@@ -1,2 +1,2 @@
-watch = true
+interval = 1
 log-level = "info"

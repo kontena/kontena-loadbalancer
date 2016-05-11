@@ -11,6 +11,7 @@ setup() {
 @test "supports virtual_path" {
   etcdctl set /kontena/haproxy/lb/services/service-a/virtual_path /a/
   etcdctl set /kontena/haproxy/lb/services/service-a/upstreams/server service-a:9292
+  sleep 1
   run curl -s http://localhost:8180/a/
   [ "${lines[0]}" = "service-a" ]
   run curl -s http://localhost:8180/a/virtual_path
@@ -21,7 +22,7 @@ setup() {
 @test "supports virtual_hosts" {
   etcdctl set /kontena/haproxy/lb/services/service-b/virtual_hosts www.foo.com,api.foo.com
   etcdctl set /kontena/haproxy/lb/services/service-b/upstreams/server service-b:9292
-
+  sleep 1
   run curl -s -H "Host: www.foo.com" http://localhost:8180/
   [ "${lines[0]}" = "service-b" ]
   run curl -s -H "Host: api.foo.com" http://localhost:8180/
@@ -36,6 +37,7 @@ setup() {
   etcdctl set /kontena/haproxy/lb/services/service-c/virtual_path /c
   etcdctl set /kontena/haproxy/lb/services/service-c/upstreams/server service-c:9292
 
+  sleep 1
   run curl -s http://localhost:8180
   [ "$status" -eq 0 ]
   [ $(expr "$output" : ".*Service Unavailable.*") -ne 0 ]
@@ -59,6 +61,7 @@ setup() {
   etcdctl set /kontena/haproxy/lb/services/service-c/virtual_hosts api.bar.com
   etcdctl set /kontena/haproxy/lb/services/service-c/upstreams/server service-c:9292
 
+  sleep 1
   run curl -s -H "Host: www.bar.com" http://localhost:8180
   [ "$status" -eq 0 ]
   [ $(expr "$output" : ".*Service Unavailable.*") -ne 0 ]
@@ -75,6 +78,7 @@ setup() {
   etcdctl set /kontena/haproxy/lb/services/service-c/virtual_hosts www.bar.com
   etcdctl set /kontena/haproxy/lb/services/service-c/upstreams/server service-c:9292
 
+  sleep 1
   run curl -s http://localhost:8180
   [ "$status" -eq 0 ]
   [ $(expr "$output" : ".*Service Unavailable.*") -ne 0 ]
