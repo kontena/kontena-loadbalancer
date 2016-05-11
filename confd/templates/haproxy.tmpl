@@ -41,9 +41,9 @@ listen http-in
         {{range $host := split (getv $virtual_hosts) "," }}
           acl host_{{$service}} hdr(host) -i {{$host}}
           acl host_{{$service}} hdr(host) -i {{$host}}:80
-          {{if exists "/certs/bundle" }}
-          acl host_{{$service}} req_ssl_sni -i {{getv $host}}
-          acl host_{{$service}} req_ssl_sni -i {{getv $host}}:443
+          {{if exists "/certs/bundle"}}
+          acl host_{{$service}} req_ssl_sni -i {{$host}}
+          acl host_{{$service}} req_ssl_sni -i {{$host}}:443
           {{end}}
         {{end}}
       {{end}}
