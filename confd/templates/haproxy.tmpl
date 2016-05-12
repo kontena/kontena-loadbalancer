@@ -39,25 +39,62 @@ listen http-in
       {{$virtual_hosts := printf "/services/%s/virtual_hosts" $service}}
       {{if exists $virtual_hosts}}
         {{range $host := split (getv $virtual_hosts) "," }}
+          {{ $host_parts := split $host "." }}
+          {{if eq (index $host_parts 0) "*"}}
+          acl host_{{$service}} hdr_end(host) -i {{replace $host "*." "." -1}}
+          acl host_{{$service}} hdr_end(host) -i {{replace $host "*." "." -1}}:80
+          {{if exists "/certs/bundle"}}
+          acl host_{{$service}} req_ssl_sni -i {{replace $host "*." "." -1}}
+          acl host_{{$service}} req_ssl_sni -i {{replace $host "*." "." -1}}:443
+          {{end}}
+          {{else}}
           acl host_{{$service}} hdr(host) -i {{$host}}
           acl host_{{$service}} hdr(host) -i {{$host}}:80
           {{if exists "/certs/bundle"}}
           acl host_{{$service}} req_ssl_sni -i {{$host}}
           acl host_{{$service}} req_ssl_sni -i {{$host}}:443
           {{end}}
+          {{end}}
         {{end}}
       {{end}}
-
       {{$virtual_path := printf "/services/%s/virtual_path" $service}}
       {{if exists $virtual_path}}
-        acl host_{{$service}}_path url_beg {{getv $virtual_path}}
-        {{if exists $virtual_hosts}}
-        use_backend {{$service}} if host_{{$service}} host_{{$service}}_path
-        {{else}}
-        use_backend {{$service}} if host_{{$service}}_path
-        {{end}}
-      {{else}}
+        acl host_{{$service}}_virtual_path url_beg {{getv $virtual_path}}
+      {{end}}
+    {{end}}
+    {{end}}
+
+    {{range $service := ls "/services"}}
+    {{$upstreams := printf "/services/%s/upstreams/*" $service }}
+    {{$upstream_servers := gets $upstreams }} {{$upstream_len := len $upstreams}}
+    {{if ne $upstream_len 0}}
+      {{$virtual_hosts := printf "/services/%s/virtual_hosts" $service}}
+      {{$virtual_path := printf "/services/%s/virtual_path" $service}}
+      {{if (exists $virtual_hosts) | and (exists $virtual_path)}}
+      use_backend {{$service}} if host_{{$service}} host_{{$service}}_virtual_path
+      {{end}}
+    {{end}}
+    {{end}}
+
+    {{range $service := ls "/services"}}
+    {{$upstreams := printf "/services/%s/upstreams/*" $service }}
+    {{$upstream_servers := gets $upstreams }} {{$upstream_len := len $upstreams}}
+    {{if ne $upstream_len 0}}
+      {{$virtual_hosts := printf "/services/%s/virtual_hosts" $service}}
+      {{$virtual_path := printf "/services/%s/virtual_path" $service}}
+      {{if (exists $virtual_hosts) | and (not (exists $virtual_path))}}
         use_backend {{$service}} if host_{{$service}}
+      {{end}}
+    {{end}}
+    {{end}}
+
+    {{range $service := ls "/services"}}
+    {{$upstreams := printf "/services/%s/upstreams/*" $service }}
+    {{$upstream_servers := gets $upstreams }} {{$upstream_len := len $upstreams}}
+    {{if ne $upstream_len 0}}
+      {{$virtual_path := printf "/services/%s/virtual_path" $service}}
+      {{if exists $virtual_path}}
+        use_backend {{$service}} if host_{{$service}}_virtual_path
       {{end}}
     {{end}}
     {{end}}
@@ -82,7 +119,8 @@ backend {{$service}}
     balance                 roundrobin
     {{end}}
 
-    {{$virtual_path := printf "/services/%s/virtual_path" $service}}  {{if exists $virtual_path}}
+    {{$virtual_path := printf "/services/%s/virtual_path" $service}}
+    {{if exists $virtual_path}}
     reqrep ^([^\ :]*)\ {{getv $virtual_path}}[/]?(.*)     \1\ /\2
     {{end}}
 
