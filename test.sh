@@ -127,6 +127,21 @@ setup() {
   [ "${lines[0]}" = "service-c" ]
 }
 
+@test "works with domain:port host header" {
+  etcdctl set /kontena/haproxy/lb/services/service-b/virtual_hosts www.bar.com
+  etcdctl set /kontena/haproxy/lb/services/service-b/upstreams/server service-b:9292
+
+  sleep 1
+
+  run curl -s -H "Host: www.bar.com" http://localhost:8180/
+  [ "$status" -eq 0 ]
+  [ "${lines[0]}" = "service-b" ]
+
+  run curl -s -H "Host: www.bar.com:80" http://localhost:8180/
+  [ "$status" -eq 0 ]
+  [ "${lines[0]}" = "service-b" ]
+}
+
 @test "returns custom error page" {
   sleep 1
   run curl -s http://localhost:8180/invalid/
