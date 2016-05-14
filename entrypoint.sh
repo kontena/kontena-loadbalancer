@@ -29,7 +29,7 @@ function bootstrap() {
 function split_certs() {
   echo "${SSL_CERTS}" > /tmp/certs.pem
   cd /tmp
-  sed '/^$/d' certs.pem > certs_tmp.pem && csplit --elide-empty-files -s -f cert -b %02d_gen.pem certs_tmp.pem "/-----END .*PRIVATE KEY-----/+1"
+  sed '/^$/d' certs.pem > certs_tmp.pem && csplit --elide-empty-files -s -f cert -b %02d_gen.pem certs_tmp.pem "/-----END .*PRIVATE KEY-----/+1" {*}
   mkdir -p /etc/haproxy/certs > /dev/null 2>&1
   rm /etc/haproxy/certs/cert*_gen.pem > /dev/null 2>&1 || true
   mv cert*_gen.pem /etc/haproxy/certs/
