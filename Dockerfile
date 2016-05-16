@@ -1,5 +1,5 @@
 FROM ubuntu-debootstrap:trusty
-MAINTAINER jari@kontena.io
+MAINTAINER Kontena, Inc. <info@kontena.io>
 
 ENV CONFD_VERSION=0.11.0 \
     STATS_PASSWORD=secret \

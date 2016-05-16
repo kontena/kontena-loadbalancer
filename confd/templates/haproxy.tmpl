@@ -84,8 +84,9 @@ listen http-in
     {{$upstreams := printf "/services/%s/upstreams/*" $service }}
     {{$upstream_servers := gets $upstreams }} {{$upstream_len := len $upstreams}}
     {{if ne $upstream_len 0}}
+      {{$virtual_hosts := printf "/services/%s/virtual_hosts" $service}}
       {{$virtual_path := printf "/services/%s/virtual_path" $service}}
-      {{if exists $virtual_path}}
+      {{if exists $virtual_path | and (not (exists $virtual_hosts))}}
         use_backend {{$service}} if host_{{$service}}_virtual_path
       {{end}}
     {{end}}
@@ -112,7 +113,14 @@ backend {{$service}}
     {{end}}
 
     {{$virtual_path := printf "/services/%s/virtual_path" $service}}
+    {{$keep_virtual_path := printf "/services/%s/keep_virtual_path" $service}}
+    {{if exists $keep_virtual_path}}
     {{if exists $virtual_path}}
+    {{if not (eq (getv $keep_virtual_path) "true")}}
+    reqrep ^([^\ :]*)\ {{getv $virtual_path}}[/]?(.*)     \1\ /\2
+    {{end}}
+    {{end}}
+    {{else if exists $virtual_path}}
     reqrep ^([^\ :]*)\ {{getv $virtual_path}}[/]?(.*)     \1\ /\2
     {{end}}
 
