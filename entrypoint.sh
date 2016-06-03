@@ -30,6 +30,20 @@ function split_certs() {
   echo "${SSL_CERTS}" > /tmp/certs.pem
   cd /tmp
   sed '/^$/d' certs.pem > certs_tmp.pem && csplit --elide-empty-files -s -f cert -b %02d_gen.pem certs_tmp.pem "/-----END .*PRIVATE KEY-----/+1" {*}
+  
+  for file in cert*_gen.pem
+  do
+    rc=0
+    openssl x509 -in $file -text -noout > /dev/null 2>&1 || rc=$?
+    if [ $rc -eq 0 ]
+    then
+      echo "[kontena-lb] Valid certificate at $file"
+    else
+      echo "[kontena-lb] ERROR: Invalid certificate found at $file, removing so it does not crash whole LB." >&2
+      rm $file > /dev/null 2>&1
+    fi
+  done
+  
   mkdir -p /etc/haproxy/certs > /dev/null 2>&1
   rm /etc/haproxy/certs/cert*_gen.pem > /dev/null 2>&1 || true
   mv cert*_gen.pem /etc/haproxy/certs/
@@ -61,9 +75,9 @@ echo "[kontena-lb] booting $KONTENA_SERVICE_NAME. Using etcd: $ETCD_NODE"
 bootstrap
 
 if [ -n "$SSL_CERTS" ]; then
-  echo -n "[kontena-lb] splitting bundled certificates..."
+  echo "[kontena-lb] splitting bundled certificates..."
   split_certs
-  echo "...done. Certificates updated into HAProxy."
+  echo "[kontena-lb] certificates updated into HAProxy."
 else
   echo "[kontena-lb] No certificates found, disabling SSL support"
   etcd_rm "certs/bundle"

@@ -212,3 +212,11 @@ setup() {
   run curl -s http://localhost:8181/health/
   [ $(expr "$output" : ".*503 — Service Unavailable.*") -ne 0 ]
 }
+
+@test "supports ssl with invalid cert ignored" {
+  etcdctl set /kontena/haproxy/lb/services/service-a/virtual_path /a/
+  etcdctl set /kontena/haproxy/lb/services/service-a/upstreams/server service-a:9292
+  sleep 1
+  run curl -k -s https://localhost:8443/a/
+  [ "${lines[0]}" = "service-a" ]
+}
