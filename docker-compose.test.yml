@@ -10,11 +10,20 @@ lb:
     - 8443:443
   environment:
     - KONTENA_SERVICE_NAME=lb
+    - KONTENA_LB_HEALTH_URI=/health
   links:
     - service-a
     - service-b
     - service-c
 
+lb_no_health:
+  build: .
+  command: -log-level=debug
+  ports:
+    - 8181:80
+  environment:
+    - KONTENA_SERVICE_NAME=lb_no_health
+  
 service-a:
   build: test/server
   container_name: service-a

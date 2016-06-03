@@ -33,6 +33,12 @@ listen http-in
 
     errorfile 502 /etc/haproxy/errors/502.http
     errorfile 503 /etc/haproxy/errors/503.http
+    
+    {{$health_endpoint := getenv "KONTENA_LB_HEALTH_URI"}}
+    {{if (len $health_endpoint) ne 0}}
+    monitor-uri {{$health_endpoint}}
+    errorfile 200 /etc/haproxy/errors/200.http
+    {{end}}
 
     {{range $service := ls "/services"}}
     {{$upstreams := printf "/services/%s/upstreams/*" $service }}

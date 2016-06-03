@@ -2,6 +2,7 @@
 
 load "test/common"
 
+
 setup() {
   etcdctl rm --recursive /kontena/haproxy/lb/services/service-a || true
   etcdctl rm --recursive /kontena/haproxy/lb/services/service-b || true
@@ -198,4 +199,16 @@ setup() {
   sleep 1
   run curl -s http://localhost:8180/invalid/
   [ $(expr "$output" : ".*Kontena Load Balancer.*") -ne 0 ]
+}
+
+@test "returns health check page if configured in env" {
+  sleep 1
+  run curl -s http://localhost:8180/health
+  [ $(expr "$output" : ".*Everything seems to be 200 - OK.*") -ne 0 ]
+}
+
+@test "returns error if health not configured in env" {
+  sleep 1
+  run curl -s http://localhost:8181/health/
+  [ $(expr "$output" : ".*503 — Service Unavailable.*") -ne 0 ]
 }
