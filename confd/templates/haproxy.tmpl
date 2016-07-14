@@ -111,6 +111,15 @@ backend {{$service}}
       {{end}}
     {{end}}
 
+    {{$cookie := printf "/services/%s/cookie" $service}}
+    {{if exists $cookie}}
+      {{if eq (getv $cookie) ""}}
+        cookie KONTENA_SERVERID insert indirect nocache
+      {{else}}
+        {{getv $cookie}}
+      {{end}}
+    {{end}}
+
     {{$balance := printf "/services/%s/balance" $service}}
     {{if exists $balance}}
     balance                 {{getv $balance}}
@@ -131,7 +140,7 @@ backend {{$service}}
     {{end}}
 
     {{range $upstream := ls (printf "/services/%s/upstreams" $service)}}
-    server {{$upstream}} {{printf "/services/%s/upstreams/%s" $service $upstream | getv}} check
+    server {{$upstream}} {{printf "/services/%s/upstreams/%s" $service $upstream | getv}} check {{if exists $cookie}}cookie {{$upstream}}{{end}}
     {{end}}
 {{end}}
 {{end}}

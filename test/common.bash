@@ -1,8 +1,8 @@
 #!/bin/bash
 
 etcdctl() {
-	docker run --rm --net=host --entrypoint=/usr/bin/etcdctl kontena/etcd:2.2.1 "$@" &> /dev/null
+	docker run --rm --net=host --entrypoint=/usr/bin/etcdctl lbtesthelper "$@" 
 }
 curl() {
-	docker run --rm --net=host --entrypoint=/usr/bin/curl tutum/curl:latest "$@"
+	docker run --rm --net=host --entrypoint=/usr/bin/curl lbtesthelper "$@"
 }

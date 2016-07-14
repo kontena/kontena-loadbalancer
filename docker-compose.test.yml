@@ -1,5 +1,5 @@
 etcd:
-  image: kontena/etcd:2.2.1
+  image: kontena/etcd:2.3.3
   command: --listen-client-urls http://172.17.0.1:2379,http://localhost:2379 --advertise-client-urls http://172.17.0.1:2379,http://localhost:2379
   net: host
 

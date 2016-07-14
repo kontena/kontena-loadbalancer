@@ -6,3 +6,5 @@ docker-compose -f docker-compose.test.yml up -d etcd
 sleep 3
 docker-compose -f docker-compose.test.yml build
 docker-compose -f docker-compose.test.yml up -d
+
+docker build -f Dockerfile.testhelper -t lbtesthelper .
