@@ -1,2 +1,2 @@
 interval = 1
-log-level = "info"
+log-level = "error"

@@ -4,14 +4,17 @@ global
     user                    haproxy
     group                   haproxy
     maxconn                 100000
+    log                     {{ or (getenv "SYSLOG_TARGET") "127.0.0.1 local1 info" }}
     tune.ssl.default-dh-param 2048
     ssl-default-bind-ciphers ECDHE-RSA-AES128-GCM-SHA256:ECDHE-ECDSA-AES128-GCM-SHA256:ECDHE-RSA-AES256-GCM-SHA384:ECDHE-ECDSA-AES256-GCM-SHA384:DHE-RSA-AES128-GCM-SHA256:DHE-DSS-AES128-GCM-SHA256:kEDH+AESGCM:ECDHE-RSA-AES128-SHA256:ECDHE-ECDSA-AES128-SHA256:ECDHE-RSA-AES128-SHA:ECDHE-ECDSA-AES128-SHA:ECDHE-RSA-AES256-SHA384:ECDHE-ECDSA-AES256-SHA384:ECDHE-RSA-AES256-SHA:ECDHE-ECDSA-AES256-SHA:DHE-RSA-AES128-SHA256:DHE-RSA-AES128-SHA:DHE-DSS-AES128-SHA256:DHE-RSA-AES256-SHA256:DHE-DSS-AES256-SHA:DHE-RSA-AES256-SHA:AES128-GCM-SHA256:AES256-GCM-SHA384:AES128-SHA256:AES256-SHA256:AES128-SHA:AES256-SHA:AES:CAMELLIA:DES-CBC3-SHA:!aNULL:!eNULL:!EXPORT:!DES:!RC4:!MD5:!PSK:!aECDH:!EDH-DSS-DES-CBC3-SHA:!EDH-RSA-DES-CBC3-SHA:!KRB5-DES-CBC3-SHA
 
 defaults
+    log                     global
     mode                    http
     option                  splice-auto
     option                  http-keep-alive
     option                  redispatch
+    option                  httplog
     retries                 3
     timeout http-request    5s
     timeout queue           1m
@@ -23,17 +26,16 @@ defaults
 
 listen http-in
     bind *:80
+    http-request replace-header Host (.*):.* \1
     {{if exists "/certs/bundle"}}
     bind *:443 ssl crt /etc/haproxy/certs/ no-sslv3
     reqadd X-Forwarded-Proto:\ https if { ssl_fc }
     reqadd X-Forwarded-Port:\ 443 if { ssl_fc }
     {{end}}
 
-    http-request replace-header Host (.*):.* \1
-
     errorfile 502 /etc/haproxy/errors/502.http
     errorfile 503 /etc/haproxy/errors/503.http
-    
+
     {{$health_endpoint := getenv "KONTENA_LB_HEALTH_URI"}}
     {{if (len $health_endpoint) ne 0}}
     monitor-uri {{$health_endpoint}}

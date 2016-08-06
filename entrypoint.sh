@@ -23,6 +23,9 @@ function bootstrap() {
   etcd_mkdir "certs"
   rm -f /var/run/haproxy.pid > /dev/null 2>&1
   rm -f /etc/haproxy/haproxy.cfg > /dev/null 2>&1
+  touch /var/log/haproxy.log
+  chown syslog /var/log/haproxy.log
+  rsyslogd
 }
 
 # split certificates
@@ -30,7 +33,7 @@ function split_certs() {
   echo "${SSL_CERTS}" > /tmp/certs.pem
   cd /tmp
   sed '/^$/d' certs.pem > certs_tmp.pem && csplit --elide-empty-files -s -f cert -b %02d_gen.pem certs_tmp.pem "/-----END .*PRIVATE KEY-----/+1" {*}
-  
+
   for file in cert*_gen.pem
   do
     rc=0
@@ -43,7 +46,7 @@ function split_certs() {
       rm $file > /dev/null 2>&1
     fi
   done
-  
+
   mkdir -p /etc/haproxy/certs > /dev/null 2>&1
   rm /etc/haproxy/certs/cert*_gen.pem > /dev/null 2>&1 || true
   mv cert*_gen.pem /etc/haproxy/certs/
@@ -53,8 +56,7 @@ function split_certs() {
 
 # tail debug log (bypass confd restrictions)
 function tail_log() {
-  touch /var/log/debug.log
-  tail --pid $$ -F /var/log/debug.log &
+  tail --pid $$ -F /var/log/haproxy.log &
 }
 
 function wait_confd() {
