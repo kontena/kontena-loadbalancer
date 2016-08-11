@@ -221,6 +221,19 @@ setup() {
   [ "${lines[0]}" = "service-a" ]
 }
 
+@test "supports health check uri setting" {
+  etcdctl set /kontena/haproxy/lb/services/service-a/virtual_path /a/
+  etcdctl set /kontena/haproxy/lb/services/service-a/health_check_uri /health
+  etcdctl set /kontena/haproxy/lb/services/service-a/upstreams/server service-a:9292
+  sleep 1
+  run curl -k -s https://localhost:8443/a/
+  [ "${lines[0]}" = "service-a" ]
+
+  run config || grep httpchk
+  assert_output_contains "option httpchk GET /health"
+  
+}
+
 @test "supports cookie stickyness" {
   etcdctl set /kontena/haproxy/lb/services/service-b/cookie ""
   etcdctl set /kontena/haproxy/lb/services/service-b/virtual_hosts www.foo.com

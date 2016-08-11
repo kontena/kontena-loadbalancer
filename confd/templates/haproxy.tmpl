@@ -141,6 +141,11 @@ backend {{$service}}
     reqrep ^([^\ :]*)\ {{getv $virtual_path}}[/]?(.*)     \1\ /\2
     {{end}}
 
+    {{$http_check_uri := (printf "/services/%s/health_check_uri" $service)}}
+    {{if exists $http_check_uri}}
+    option httpchk GET {{getv $http_check_uri}}
+    {{end}}
+
     {{range $upstream := ls (printf "/services/%s/upstreams" $service)}}
     server {{$upstream}} {{printf "/services/%s/upstreams/%s" $service $upstream | getv}} check {{if exists $cookie}}cookie {{$upstream}}{{end}}
     {{end}}

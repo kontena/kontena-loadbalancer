@@ -47,6 +47,16 @@ class App < Roda
         end
       end
     end
+
+    r.on "health" do
+      r.is do
+        r.get do
+          output = Socket.gethostname
+          output << "\n"
+          output << request.path
+        end
+      end
+    end
   end
 end
 
