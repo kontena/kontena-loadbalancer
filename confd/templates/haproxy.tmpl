@@ -129,6 +129,12 @@ backend {{$service}}
     balance                 roundrobin
     {{end}}
 
+    {{$basic_auth := printf "/services/%s/basic_auth_secrets" $service}}
+    {{if exists $basic_auth}}
+    acl auth_ok_{{$service}} http_auth(auth_users_{{$service}})
+    http-request auth realm {{$service}} unless auth_ok_{{$service}}
+    {{end}}
+
     {{$virtual_path := printf "/services/%s/virtual_path" $service}}
     {{$keep_virtual_path := printf "/services/%s/keep_virtual_path" $service}}
     {{if exists $keep_virtual_path}}
@@ -194,3 +200,13 @@ listen stats
 
 userlist stats-auth
     user stats insecure-password {{getenv "STATS_PASSWORD"}}
+
+
+{{range $service := ls "/services"}}
+{{$basic_auth_key := printf "/services/%s/basic_auth_secrets" $service }}
+{{if exists $basic_auth_key}}
+{{$auth_data := getv $basic_auth_key }} {{$auth_data_len := len $auth_data}}
+userlist auth_users_{{$service}}
+  {{$auth_data}}
+{{end}}
+{{end}}
