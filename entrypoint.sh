@@ -3,17 +3,17 @@ set -eo pipefail
 
 # create dir to etcd
 function etcd_mkdir() {
-  curl -sL -X PUT http://$ETCD_NODE/v2/keys/kontena/haproxy/$KONTENA_SERVICE_NAME/$1 -d dir=true > /dev/null 2>&1
+  curl -sL -X PUT http://$ETCD_NODE/v2/keys/kontena/haproxy/$LB_NAME/$1 -d dir=true > /dev/null 2>&1
 }
 
 # set value to etcd
 function etcd_set() {
-  curl -sL -X PUT http://$ETCD_NODE/v2/keys/kontena/haproxy/$KONTENA_SERVICE_NAME/$1 -d $2 > /dev/null 2>&1
+  curl -sL -X PUT http://$ETCD_NODE/v2/keys/kontena/haproxy/$LB_NAME/$1 -d $2 > /dev/null 2>&1
 }
 
 # remove key from etcd
 function etcd_rm() {
-  curl -sL -X DELETE http://$ETCD_NODE/v2/keys/kontena/haproxy/$KONTENA_SERVICE_NAME/$1 > /dev/null 2>&1
+  curl -sL -X DELETE http://$ETCD_NODE/v2/keys/kontena/haproxy/$LB_NAME/$1 > /dev/null 2>&1
 }
 
 # bootstrap etcd paths and cleanup pid/config files
@@ -61,7 +61,7 @@ function tail_log() {
 
 function wait_confd() {
   # Loop until confd has updated the haproxy config
-  until confd -onetime -node "$ETCD_NODE" -prefix="/kontena/haproxy/$KONTENA_SERVICE_NAME" "$@"; do
+  until confd -onetime -node "$ETCD_NODE" -prefix="/kontena/haproxy/$LB_NAME" "$@"; do
     echo "[kontena-lb] waiting for confd to refresh haproxy.cfg"
     sleep 5
   done
@@ -72,7 +72,13 @@ if [ -z "$ETCD_NODE"]; then
   ETCD_NODE=$IP:2379
 fi
 
-echo "[kontena-lb] booting $KONTENA_SERVICE_NAME. Using etcd: $ETCD_NODE"
+if [ -z $KONTENA_STACK_NAME ] || [ "$KONTENA_STACK_NAME" == "null" ]; then
+  LB_NAME=$KONTENA_SERVICE_NAME
+else
+  LB_NAME="$KONTENA_STACK_NAME/$KONTENA_SERVICE_NAME"
+fi
+
+echo "[kontena-lb] booting $LB_NAME. Using etcd: $ETCD_NODE"
 
 bootstrap
 
@@ -88,5 +94,5 @@ fi
 tail_log
 wait_confd
 
-echo "[kontena-lb] Starting confd"
-exec confd -node "$ETCD_NODE" -prefix="/kontena/haproxy/$KONTENA_SERVICE_NAME" "$@"
+echo "[kontena-lb] Starting confd with prefix $LB_NAME"
+exec confd -node "$ETCD_NODE" -prefix="/kontena/haproxy/$LB_NAME" "$@"
