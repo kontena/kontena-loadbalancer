@@ -1,4 +1,5 @@
 #!/bin/bash
+docker pull nabz/docker-sslscan
 
 docker build -t lbtesthelper -f Dockerfile.testhelper .
 docker-compose -f docker-compose.test.yml stop
