@@ -1,13 +1,16 @@
 #!/bin/bash
 
 etcdctl() {
-	docker run --rm --net=host --entrypoint=/usr/bin/etcdctl lbtesthelper "$@" 
+	docker run --rm --net=host --entrypoint=/usr/bin/etcdctl lbtesthelper "$@"
 }
 curl() {
 	docker run --rm --net=host --entrypoint=/usr/bin/curl lbtesthelper "$@"
 }
 config() {
 	docker exec kontenaloadbalancer_lb_1 cat /etc/haproxy/haproxy.cfg
+}
+sslscan() {
+	docker run --rm --net=host nabz/docker-sslscan "$@"
 }
 
 # Some assert helpers, inspired by Dokku: https://github.com/dokku/dokku/blob/master/tests/unit/test_helper.bash
