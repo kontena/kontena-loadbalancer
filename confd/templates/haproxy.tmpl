@@ -28,6 +28,12 @@ defaults
     timeout server          1m
     timeout http-keep-alive 10s
     timeout check           10s
+    {{$settings := getenv "KONTENA_LB_CUSTOM_SETTINGS"}}
+    {{if (len $settings) ne 0}}
+      {{range $setting := split $settings "\n" }}
+        {{$setting}}
+      {{end}}
+    {{end}}
 
 listen http-in
     bind *:80
