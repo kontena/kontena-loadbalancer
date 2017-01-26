@@ -54,9 +54,8 @@ listen http-in
     {{end}}
 
     {{range $service := ls "/services"}}
-    {{$upstreams := printf "/services/%s/upstreams/*" $service }}
-    {{$upstream_servers := gets $upstreams }} {{$upstream_len := len $upstreams}}
-    {{if ne $upstream_len 0}}
+    {{$upstream_servers := gets (printf "/services/%s/upstreams/*" $service)}}
+    {{if ne (len $upstream_servers) 0}}
       {{$virtual_hosts := printf "/services/%s/virtual_hosts" $service}}
       {{if exists $virtual_hosts}}
         {{range $host := split (getv $virtual_hosts) "," }}
@@ -76,9 +75,8 @@ listen http-in
     {{end}}
 
     {{range $service := ls "/services"}}
-    {{$upstreams := printf "/services/%s/upstreams/*" $service }}
-    {{$upstream_servers := gets $upstreams }} {{$upstream_len := len $upstreams}}
-    {{if ne $upstream_len 0}}
+    {{$upstream_servers := gets (printf "/services/%s/upstreams/*" $service)}}
+    {{if ne (len $upstream_servers) 0}}
       {{$virtual_hosts := printf "/services/%s/virtual_hosts" $service}}
       {{$virtual_path := printf "/services/%s/virtual_path" $service}}
       {{if (exists $virtual_hosts) | and (exists $virtual_path)}}
@@ -88,9 +86,8 @@ listen http-in
     {{end}}
 
     {{range $service := ls "/services"}}
-    {{$upstreams := printf "/services/%s/upstreams/*" $service }}
-    {{$upstream_servers := gets $upstreams }} {{$upstream_len := len $upstreams}}
-    {{if ne $upstream_len 0}}
+    {{$upstream_servers := gets (printf "/services/%s/upstreams/*" $service)}}
+    {{if ne (len $upstream_servers) 0}}
       {{$virtual_hosts := printf "/services/%s/virtual_hosts" $service}}
       {{$virtual_path := printf "/services/%s/virtual_path" $service}}
       {{if (exists $virtual_hosts) | and (not (exists $virtual_path))}}
@@ -100,9 +97,8 @@ listen http-in
     {{end}}
 
     {{range $service := ls "/services"}}
-    {{$upstreams := printf "/services/%s/upstreams/*" $service }}
-    {{$upstream_servers := gets $upstreams }} {{$upstream_len := len $upstreams}}
-    {{if ne $upstream_len 0}}
+    {{$upstream_servers := gets (printf "/services/%s/upstreams/*" $service)}}
+    {{if ne (len $upstream_servers) 0}}
       {{$virtual_hosts := printf "/services/%s/virtual_hosts" $service}}
       {{$virtual_path := printf "/services/%s/virtual_path" $service}}
       {{if exists $virtual_path | and (not (exists $virtual_hosts))}}
@@ -112,9 +108,8 @@ listen http-in
     {{end}}
 
 {{range $service := ls "/services"}}
-{{$upstreams := printf "/services/%s/upstreams/*" $service }}
-{{$upstream_servers := gets $upstreams }} {{$upstream_len := len $upstreams}}
-{{if ne $upstream_len 0}}
+{{$upstream_servers := gets (printf "/services/%s/upstreams/*" $service)}}
+{{if ne (len $upstream_servers) 0}}
 backend {{$service}}
     option                  forwardfor
     {{$custom_settings := printf "/services/%s/custom_settings" $service}}
@@ -170,9 +165,8 @@ backend {{$service}}
 {{end}}
 
 {{range $service := ls "/tcp-services"}}
-{{$upstreams := printf "/services/%s/upstreams/*" $service }}
-{{$upstream_servers := gets $upstreams }} {{$upstream_len := len $upstreams}}
-{{if ne $upstream_len 0}}
+{{$upstream_servers := gets (printf "/services/%s/upstreams/*" $service)}}
+{{if ne (len $upstream_servers) 0}}
 listen {{$service}}
     mode tcp
     {{$balance := printf "/tcp-services/%s/balance" $service}}
