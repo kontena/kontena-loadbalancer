@@ -29,6 +29,18 @@ function bootstrap() {
 }
 
 # split certificates
+function load_cert() {
+  local name=$1
+  local path=$2
+
+  if openssl x509 -in $path -noout &> /dev/null ; then
+    echo "[kontena-lb] Valid certificate at $path"
+    mv $path /etc/haproxy/certs/$name.pem
+  else
+    echo "[kontena-lb] ERROR: Invalid certificate $name at $path, ignoring so it does not crash whole LB." >&2
+  fi
+}
+
 function split_certs() {
   echo "${SSL_CERTS}" > /tmp/certs.pem
   cd /tmp
@@ -47,11 +59,32 @@ function split_certs() {
     fi
   done
 
-  mkdir -p /etc/haproxy/certs > /dev/null 2>&1
   rm /etc/haproxy/certs/cert*_gen.pem > /dev/null 2>&1 || true
   mv cert*_gen.pem /etc/haproxy/certs/
-  etcd_set "certs/bundle" "value=true"
   rm cert*_gen.pem > /dev/null 2>&1 || true
+}
+
+HAVE_CERTS=
+
+function load_certs() {
+  mkdir -p /tmp/ssl_certs
+  mkdir -p /etc/haproxy/certs
+
+  if [ -n "${SSL_CERTS}" ]; then
+    echo "[kontena-lb] splitting bundled certificates from SSL_CERTS..."
+    split_certs
+    HAVE_CERTS=true
+  fi
+
+  for certenv in "${!SSL_CERT_@}"; do
+    echo "[kontena-lb] loading bundled certificate from $certenv..."
+
+    cat > /tmp/ssl_certs/$certenv.pem <<<"${!certenv}"
+    load_cert "$certenv" /tmp/ssl_certs/$certenv.pem
+    HAVE_CERTS=true
+  done
+
+  rm -rf /tmp/ssl_certs
 }
 
 # tail debug log (bypass confd restrictions)
@@ -81,11 +114,11 @@ fi
 echo "[kontena-lb] booting $LB_NAME. Using etcd: $ETCD_NODE"
 
 bootstrap
+load_certs
 
-if [ -n "$SSL_CERTS" ]; then
-  echo "[kontena-lb] splitting bundled certificates..."
-  split_certs
+if [ "$HAVE_CERTS" ]; then
   echo "[kontena-lb] certificates updated into HAProxy."
+  etcd_set "certs/bundle" "value=true"
 else
   echo "[kontena-lb] No certificates found, disabling SSL support"
   etcd_rm "certs/bundle"

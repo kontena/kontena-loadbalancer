@@ -30,7 +30,7 @@ setup() {
   run curl -k -s https://localhost:8443/a/
   [ "${lines[0]}" = "service-a" ]
 
-  run config || grep httpchk
+  run config
   assert_output_contains "option httpchk GET /health"
 
 }
