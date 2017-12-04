@@ -1,0 +1,20 @@
+sudo: required
+language: ruby
+services:
+  - docker
+rvm:
+  - 2.4.1
+env:
+  global:
+    - DOCKER_USERNAME=kontenabot
+    - secure: "ggCnij9ZOhZ19tQRKKCo3RJGbtbBbqCHGzbfHJfJBKdzKtsqDAHrlz3VmajS2UALZ9TyXLTyM2Qt5nH0CO8VUaxSxOi53r1wFmg7RFGGTg2rdkQ/Vf/lXIQANzO9ICjTTGTArbE8KNy0Ri1Z0gvlDXYOBLtSaJHE1xTaKSGr54S4LjhNZox7R3frN8qcqHH37ygLlpe0dAZbdXeBls5e4/CeBdHrZNmwY9iRJiwDGYLHvC37QD9WEXY0vua8f1qU/95MuTGoRkbpoEDJJ/epFVEolcaYjtj7Y1Gf2+CG60WqjYmGSD9xrxwbVVj7JH+eTRqUb8NZYD9b7Lpe/m9P6JN/9FmqIHJ5XYenoKoPlyLbLXPkP+8bk8e9EBLwbROopR8+tqKxHmel6twajDhMd6MCxWApzsMfN9BntaLBKce0DuepdyIcgd8XGhZVqPxVUSXGjC8UmKafI9hTDIBsKGMyarJ5ZT4ZAF1o9Wx5aSte5jsgry0DGOOr9GFxgQobuHm8RsDt2osG4dDkeOC9XbPa/4whBPdTgHEBoIhakZAh/4vqWSa6L6a98ppSjpSmxz9LVk0+aVlmV8763oEvhGa3ibnYsYRGNDORAxbO+rOQowmvcIWq6yHaUBwWeeeGU7Y//Hq65QjY/ZPp6Z2kSE4+wSu/9nmuc88xdTIgGWI=" # for docker hub
+cache: bundler
+script:
+  - bundle exec rspec spec/
+  - ./prepare_test.sh && bats test/
+deploy:
+  - provider: script
+    script: ./build/edge.sh
+    on:
+      branch: master
+      rvm: 2.4.1
