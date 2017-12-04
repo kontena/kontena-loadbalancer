@@ -1,4 +1,4 @@
-FROM haproxy:1.5-alpine
+FROM haproxy:1.8-alpine
 MAINTAINER Kontena, Inc. <info@kontena.io>
 
 ENV STATS_PASSWORD=secret \
