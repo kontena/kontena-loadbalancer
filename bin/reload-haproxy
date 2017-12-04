@@ -1,7 +1,0 @@
-#!/bin/sh
-
-if [ -n "$LOG_CONFIG" ]; then
-  echo "[kontena-lb] current haproxy config:" >> /var/log/haproxy.log
-  cat /etc/haproxy/haproxy.cfg | awk NF >> /var/log/haproxy.log
-fi
-haproxy -f /etc/haproxy/haproxy.cfg -p /var/run/haproxy.pid -D -sf $(cat /var/run/haproxy.pid)

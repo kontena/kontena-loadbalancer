@@ -1,1 +1,5 @@
 *.pem
+.env
+test/
+docker-compose.test.yml
+docker-compose.yml

@@ -1,0 +1,39 @@
+listen http-in
+    bind *:80
+    http-request replace-header Host (.*):.* \1
+    <% if ENV['SSL_CERTS'] %>
+    bind *:443 ssl crt /etc/haproxy/certs/ no-sslv3
+    reqadd X-Forwarded-Proto:\ https if { ssl_fc }
+    reqadd X-Forwarded-Port:\ 443 if { ssl_fc }
+    <% end %>
+
+    errorfile 502 /etc/haproxy/errors/502.http
+    errorfile 503 /etc/haproxy/errors/503.http
+
+    <% if ENV['KONTENA_LB_HEALTH_URI'] %>
+    monitor-uri <%= ENV['KONTENA_LB_HEALTH_URI'] %>
+    errorfile 200 /etc/haproxy/errors/200.http
+    <% end %>
+
+<% services.each do |service| %>
+  <% service.virtual_hosts.each do |virtual_host| %>
+    <% if virtual_host.start_with?('*.') %>
+    acl host_<%= service.name %> hdr_end(host) -i <%= virtual_host.sub('*.', '.') %>
+    <% else %>
+    acl host_<%= service.name %> hdr(host) -i <%= virtual_host %>
+    <% end %>
+  <% end %>
+  <% if service.virtual_path %>
+    acl host_<%= service.name %>_virtual_path url_beg <%= service.virtual_path %>
+  <% end %>
+<% end %>
+
+<% services.select { |s| s.virtual_hosts.size > 0 && s.virtual_path }.each do |service| %>
+    use_backend <%= service.name %> if host_<%= service.name %> host_<%= service.name %>_virtual_path
+<% end %>
+<% services.select { |s| s.virtual_hosts.size > 0 && s.virtual_path.nil? }.each do |service| %>
+    use_backend <%= service.name %> if host_<%= service.name %>
+<% end %>
+<% services.select { |s| s.virtual_path && s.virtual_hosts.size == 0 }.each do |service| %>
+    use_backend <%= service.name %> if host_<%= service.name %>_virtual_path
+<% end %>

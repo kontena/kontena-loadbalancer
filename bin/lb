@@ -1,0 +1,15 @@
+#!/usr/bin/env ruby
+
+$stdout.sync = true
+require_relative '../lib/kontena_lb'
+
+puts "~~ Kontena LoadBalancer ~~\n\n"
+
+if ENV['SSL_CERTS']
+  cert_splitter = Kontena::CertSplitter.new
+  cert_splitter.split_and_write(ENV['SSL_CERTS'])
+end
+supervisor = Kontena::Actors::LbSupervisor.spawn!(name: 'lb_supervisor', link: true)
+supervisor << :start
+
+sleep

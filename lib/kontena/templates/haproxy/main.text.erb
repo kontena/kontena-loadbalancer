@@ -1,0 +1,39 @@
+global
+    pidfile                 /var/run/haproxy.pid
+    user                    nobody
+    group                   nobody
+    maxconn                 100000
+    log                     <%= ENV['SYSLOG_TARGET'] || '127.0.0.1 local1 info' %>
+    tune.ssl.default-dh-param 2048
+    ssl-default-bind-ciphers <%= ENV['KONTENA_LB_SSL_CIPHERS'] || 'ECDHE-RSA-AES128-GCM-SHA256:ECDHE-ECDSA-AES128-GCM-SHA256:ECDHE-RSA-AES256-GCM-SHA384:ECDHE-ECDSA-AES256-GCM-SHA384:DHE-RSA-AES128-GCM-SHA256:DHE-DSS-AES128-GCM-SHA256:kEDH+AESGCM:ECDHE-RSA-AES128-SHA256:ECDHE-ECDSA-AES128-SHA256:ECDHE-RSA-AES128-SHA:ECDHE-ECDSA-AES128-SHA:ECDHE-RSA-AES256-SHA384:ECDHE-ECDSA-AES256-SHA384:ECDHE-RSA-AES256-SHA:ECDHE-ECDSA-AES256-SHA:DHE-RSA-AES128-SHA256:DHE-RSA-AES128-SHA:DHE-DSS-AES128-SHA256:DHE-RSA-AES256-SHA256:DHE-DSS-AES256-SHA:DHE-RSA-AES256-SHA:AES128-GCM-SHA256:AES256-GCM-SHA384:AES128-SHA256:AES256-SHA256:AES128-SHA:AES256-SHA:AES:CAMELLIA:DES-CBC3-SHA:!aNULL:!eNULL:!EXPORT:!DES:!RC4:!MD5:!PSK:!aECDH:!EDH-DSS-DES-CBC3-SHA:!EDH-RSA-DES-CBC3-SHA:!KRB5-DES-CBC3-SHA' %>
+
+defaults
+    log                     global
+    mode                    http
+    option                  splice-auto
+    option                  http-keep-alive
+    option                  redispatch
+    option                  httplog
+    retries                 3
+    timeout http-request    5s
+    timeout queue           1m
+    timeout connect         5s
+    timeout client          1m
+    timeout server          1m
+    timeout http-keep-alive 10s
+    timeout check           10s
+    <% if ENV['KONTENA_LB_CUSTOM_SETTINGS'] %>
+    <% ENV['KONTENA_LB_CUSTOM_SETTINGS'].split("\n").each do |setting| %>
+    <%= setting %>
+    <% end %>
+    <% end %>
+
+<% if services.size > 0 %>
+<%= http_in %>
+<% end %>
+
+<%= http_backends %>
+<%= tcp_proxies %>
+
+<%= render partial: 'haproxy/stats', format: :text %>
+

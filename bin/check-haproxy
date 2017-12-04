@@ -1,9 +1,0 @@
-#!/bin/sh
-
-if /usr/sbin/haproxy -c -f $1 ; then
-  exit 0
-else
-  echo "[kontena-lb] invalid haproxy config:" >> /var/log/haproxy.log
-  cat $1 | awk NF >> /var/log/haproxy.log
-  exit 1
-fi

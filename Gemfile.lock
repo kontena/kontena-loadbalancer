@@ -1,0 +1,43 @@
+GEM
+  remote: https://rubygems.org/
+  specs:
+    concurrent-ruby (1.0.5)
+    concurrent-ruby-edge (0.3.1)
+      concurrent-ruby (= 1.0.5)
+    diff-lcs (1.2.5)
+    etcd (0.3.0)
+      mixlib-log
+    hanami-utils (1.0.2)
+      transproc (~> 1.0)
+    hanami-view (1.0.1)
+      hanami-utils (~> 1.0)
+      tilt (~> 2.0, >= 2.0.1)
+    mixlib-log (1.6.0)
+    rspec (3.4.0)
+      rspec-core (~> 3.4.0)
+      rspec-expectations (~> 3.4.0)
+      rspec-mocks (~> 3.4.0)
+    rspec-core (3.4.4)
+      rspec-support (~> 3.4.0)
+    rspec-expectations (3.4.0)
+      diff-lcs (>= 1.2.0, < 2.0)
+      rspec-support (~> 3.4.0)
+    rspec-mocks (3.4.1)
+      diff-lcs (>= 1.2.0, < 2.0)
+      rspec-support (~> 3.4.0)
+    rspec-support (3.4.1)
+    tilt (2.0.8)
+    transproc (1.0.2)
+
+PLATFORMS
+  ruby
+
+DEPENDENCIES
+  concurrent-ruby (~> 1.0)
+  concurrent-ruby-edge
+  etcd
+  hanami-view (~> 1.0.0)
+  rspec
+
+BUNDLED WITH
+   1.15.3

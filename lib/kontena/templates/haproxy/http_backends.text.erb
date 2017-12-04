@@ -1,0 +1,40 @@
+<% services.each do |service| %>
+backend <%= service.name %>
+    option forwardfor
+    <% service.custom_settings.each do |setting| %>
+    <%= setting %>
+    <% end %>
+
+    <% if service.cookie %>
+    <% if service.cookie.empty? %>
+    cookie KONTENA_SERVERID insert indirect nocache
+    <% else %>
+    <%= service.cookie %>
+    <% end %>
+    <% end %>
+
+    balance <%= service.balance %>
+
+    <% if service.basic_auth? %>
+    acl auth_ok_<%= service.name %> http_auth(auth_users_<%= service.name %>)
+    http-request auth realm <%= service.name %> unless auth_ok_<%= service.name %>
+    <% end %>
+
+    <% if service.virtual_path? && !service.keep_virtual_path? %>
+    reqrep ^([^\ :]*)\ <%= service.virtual_path %>[/]?(.*)     \1\ /\2
+    <% end %>
+
+    <% if service.health_check? %>
+    option httpchk GET <%= service.health_check_uri %>
+    <% end %>
+
+    <% service.upstreams.each do |upstream| %>
+    server <%= upstream.name %> <%= upstream.value %> check <% if service.cookie? %>cookie <%= upstream.name %><% end %>
+    <% end %>
+
+<% if service.basic_auth? %>
+userlist auth_users_<%= service.name %>
+  <%= service.basic_auth_secrets%>
+<% end %>
+
+<% end %>

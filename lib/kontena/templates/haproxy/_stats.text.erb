@@ -1,0 +1,15 @@
+listen stats
+    mode http
+    bind 0.0.0.0:1000
+    stats enable
+    stats uri /
+    stats refresh 10s
+    stats show-node
+    stats show-legends
+
+    # if authentication is wanted
+    acl auth_ok http_auth(stats-auth)
+    http-request auth unless auth_ok
+
+userlist stats-auth
+    user stats insecure-password <%= ENV['STATS_PASSWORD'] %>

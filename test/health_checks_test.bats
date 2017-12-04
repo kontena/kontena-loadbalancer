@@ -11,12 +11,14 @@ setup() {
 
 
 @test "returns health check page if configured in env" {
+  etcdctl set /kontena/haproxy/lb/services/service-a/virtual_hosts www.foo.com
   sleep 1
   run curl -s http://localhost:8180/health
   [ $(expr "$output" : ".*Everything seems to be 200 - OK.*") -ne 0 ]
 }
 
 @test "returns error if health not configured in env" {
+  etcdctl set /kontena/haproxy/lb_no_health/services/service-a/virtual_hosts www.foo.com
   sleep 1
   run curl -s http://localhost:8181/health/
   [ $(expr "$output" : ".*503 — Service Unavailable.*") -ne 0 ]
