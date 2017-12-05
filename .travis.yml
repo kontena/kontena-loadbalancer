@@ -18,3 +18,8 @@ deploy:
     on:
       branch: master
       rvm: 2.4.1
+  - provider: script
+    script: ./build/latest.sh
+    on:
+      tags: true
+      rvm: 2.4.1
