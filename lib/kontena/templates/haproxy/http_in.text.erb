@@ -1,7 +1,7 @@
 listen http-in
     bind *:80
     http-request replace-header Host (.*):.* \1
-    <% if ENV['SSL_CERTS'] %>
+    <% if ssl? %>
     bind *:443 ssl crt /etc/haproxy/certs/ no-sslv3 alpn h2,http/1.1
     reqadd X-Forwarded-Proto:\ https if { ssl_fc }
     reqadd X-Forwarded-Port:\ 443 if { ssl_fc }

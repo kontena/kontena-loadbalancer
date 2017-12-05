@@ -1,5 +1,5 @@
 require 'logger'
-ENV['LOG_LEVEL'] = Logger::ERROR.to_s
+ENV['LOG_LEVEL'] ||= Logger::ERROR.to_s
 require_relative '../lib/kontena_lb'
 
 RSpec.configure do |config|

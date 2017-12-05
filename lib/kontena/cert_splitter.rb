@@ -5,13 +5,20 @@ module Kontena
   class CertSplitter
     include Kontena::Logging
 
-    def initialize
+    def setup
       FileUtils.mkdir_p('/etc/haproxy/certs')
     end
 
     # @param [String] cert_bundle
     def split_and_write(cert_bundle)
-      certs = split_certs(cert_bundle)
+      certs = {}
+      i = 1
+
+      for cert in split_certs(cert_bundle)
+        certs["cert#{i}_gen"] = cert
+        i += 1
+      end
+
       write_certs(certs)
     end
 
@@ -31,17 +38,14 @@ module Kontena
       certs
     end
 
-    # @param [Array<String>] certs
+    # @param [Hash<String => String>] certs
     # @return [Integer] number of certs written
     def write_certs(certs)
-      i = 1
-      certs.each do |cert|
+      certs.each do |name, cert|
         if valid_cert?(cert)
-          write_cert(cert, "cert#{i}_gen.pem")
-          i += 1
+          write_cert(cert, name)
         end
       end
-      i
     end
 
     # @param [String] cert
@@ -57,9 +61,9 @@ module Kontena
     end
 
     # @param [String] cert
-    # @param [String] name
+    # @param [String] name without .pem suffix
     def write_cert(cert, name)
-      File.write("/etc/haproxy/certs/#{name}", cert)
+      File.write("/etc/haproxy/certs/#{name}.pem", cert)
     end
   end
 end
