@@ -5,6 +5,8 @@ module Kontena::Actors
   class HaproxySpawner < Concurrent::Actor::RestartingContext
     include Kontena::Logging
 
+    ADMIN_SOCK = '/var/run/haproxy-admin.sock'
+
     # @param [String] haproxy_bin
     # @param [String] config_file
     def initialize(haproxy_bin = '/usr/local/sbin/haproxy', config_file = '/etc/haproxy/haproxy.cfg')
@@ -51,7 +53,7 @@ module Kontena::Actors
       process = children.last
       info "child processes: #{children.map{ |c| c.ask!(:pid) }}"
       pid = process.ask!(:pid)
-      reload_cmd = @haproxy_cmd + ['-sf', pid.to_s]
+      reload_cmd = @haproxy_cmd + ['-x', ADMIN_SOCK, '-sf', pid.to_s]
       spawn_process(reload_cmd)
     end
 
