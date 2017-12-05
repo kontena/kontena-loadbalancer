@@ -7,6 +7,7 @@ require_relative 'kontena/models/tcp_service'
 require_relative 'kontena/models/upstream'
 
 require_relative 'kontena/cert_splitter'
+require_relative 'kontena/cert_manager'
 
 require_relative 'kontena/views/haproxy'
 

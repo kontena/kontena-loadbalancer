@@ -1,25 +1,17 @@
-require 'fileutils'
 require 'openssl'
 
 module Kontena
   class CertSplitter
     include Kontena::Logging
 
-    def setup
-      FileUtils.mkdir_p('/etc/haproxy/certs')
+    # @return [Hash<String => String>]
+    def self.from_env(env = ENV)
+      cert_splitter = new(env)
+      cert_splitter.to_h
     end
 
-    # @param [String] cert_bundle
-    def split_and_write(cert_bundle)
-      certs = {}
-      i = 1
-
-      for cert in split_certs(cert_bundle)
-        certs["cert#{i}_gen"] = cert
-        i += 1
-      end
-
-      write_certs(certs)
+    def initialize(env = ENV)
+      @env = env
     end
 
     # @param [String] cert_bundle
@@ -38,14 +30,42 @@ module Kontena
       certs
     end
 
-    # @param [Hash<String => String>] certs
-    # @return [Integer] number of certs written
-    def write_certs(certs)
-      certs.each do |name, cert|
-        if valid_cert?(cert)
-          write_cert(cert, name)
+    # @return [Array<String>]
+    def ssl_certs
+      @env['SSL_CERTS'] ? split_certs(@env['SSL_CERTS']) : []
+    end
+
+    # @return [Hash<String => String>]
+    def ssl_cert_glob
+      @env.select{|env, value| env.start_with? 'SSL_CERT_' }
+    end
+
+    def each
+      i = 1
+
+      ssl_certs.each do |cert|
+        if valid_cert? cert
+          yield "cert#{i}_gen", cert
+        end
+        i += 1
+      end
+
+      ssl_cert_glob.each do |name, cert|
+        if valid_cert? cert
+          yield name, cert
         end
       end
+    end
+
+    # @return [Hash<String => String>]
+    def to_h
+      certs = {}
+
+      each do |name, cert|
+        certs[name] = cert
+      end
+
+      certs
     end
 
     # @param [String] cert
@@ -58,12 +78,6 @@ module Kontena
     rescue
       warn "invalid certificate: #{cert[0..50]}"
       false
-    end
-
-    # @param [String] cert
-    # @param [String] name without .pem suffix
-    def write_cert(cert, name)
-      File.write("/etc/haproxy/certs/#{name}.pem", cert)
     end
   end
 end

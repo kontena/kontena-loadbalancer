@@ -1,6 +1,7 @@
 require 'logger'
 ENV['LOG_LEVEL'] ||= Logger::ERROR.to_s
 require_relative '../lib/kontena_lb'
+require_relative './support/fixtures_helper'
 
 RSpec.configure do |config|
   # rspec-expectations config goes here. You can use an alternate

@@ -1,113 +1,84 @@
 describe Kontena::CertSplitter do
-  let(:ssl_cert1) { <<-EOS
------BEGIN CERTIFICATE-----
-MIIC+zCCAeOgAwIBAgIJAJXVkdCXj6aqMA0GCSqGSIb3DQEBCwUAMBQxEjAQBgNV
-BAMMCWxvY2FsaG9zdDAeFw0xNzEwMjYwOTA1MjdaFw0yMDA3MjIwOTA1MjdaMBQx
-EjAQBgNVBAMMCWxvY2FsaG9zdDCCASIwDQYJKoZIhvcNAQEBBQADggEPADCCAQoC
-ggEBAKzwoA0yPoG+VqJr4F69Iaif0SumXfgt16zfaJJYKYqCOoq9qVjX89jA6CQ5
-q+zn7066ihK1pFHA2T+Be7rMRo76p1VG2YW1NQ1Dj6LENVqgJqqVaVJbe67pvTLz
-dzZRLbjjpRV8M83CiSYTm+p53qBAsvl5DWQBRIJwK45LIi5kz7UxqI+R+SPLQJqC
-4+U8TDDJ1pEdZJ4qlb9eJuP8l6TXtLrSuaLzhTPg08JGigAag39Mg1F2nkNSCI6w
-R7qGw3EhWgHjhsNCS/jP/w+JKQbQyuDuO5bYCVI9zBGbMtpP6xeDKDhmDGTguvYN
-+opSq1Aija93kk6N9ueFxlY+y4UCAwEAAaNQME4wHQYDVR0OBBYEFMZSiX50Bls8
-j8j66O0FXr/ZWtYFMB8GA1UdIwQYMBaAFMZSiX50Bls8j8j66O0FXr/ZWtYFMAwG
-A1UdEwQFMAMBAf8wDQYJKoZIhvcNAQELBQADggEBABhw+3Pm0nLhwEAtmUscH0bx
-XenjMxP5F3GxIj8eJfIWO4fXS/LIXTcM0ghKbm6q0zdBVra/nLMvrjyxYJlOqn04
-WyvBLH2EXjvIl8Bl/JLvLlddJ4gCfu5zW4d7Bs2+MBPVvfzzfFHKlmua5GbNxPoM
-hbVhZfWWqvN493mBOLE1j/1Bgch4zZGwJefP1+YuI2QHTDk8XmtBkBWymRAD4hBa
-8Yg+XLBHfcGeqpIiCRXnTlQuxabmZlDmwh/M+Cxiac676z76EN62+zcAgd1NpAO6
-BRkJQadwDC4A9ogEkBYXwG0X9/+ZB6CzG4Vx+vdSupkFMp9b0z2vcodfO39KONg=
------END CERTIFICATE-----
------BEGIN PRIVATE KEY-----
-MIIEvQIBADANBgkqhkiG9w0BAQEFAASCBKcwggSjAgEAAoIBAQCs8KANMj6Bvlai
-a+BevSGon9Erpl34Ldes32iSWCmKgjqKvalY1/PYwOgkOavs5+9OuooStaRRwNk/
-gXu6zEaO+qdVRtmFtTUNQ4+ixDVaoCaqlWlSW3uu6b0y83c2US2446UVfDPNwokm
-E5vqed6gQLL5eQ1kAUSCcCuOSyIuZM+1MaiPkfkjy0CaguPlPEwwydaRHWSeKpW/
-Xibj/Jek17S60rmi84Uz4NPCRooAGoN/TINRdp5DUgiOsEe6hsNxIVoB44bDQkv4
-z/8PiSkG0Mrg7juW2AlSPcwRmzLaT+sXgyg4Zgxk4Lr2DfqKUqtQIo2vd5JOjfbn
-hcZWPsuFAgMBAAECggEAF2tikUbrlhBblRU8xjeglkBGSD34XcJ/gYajl6XewkYO
-fXlftItSF1lQVo+Ey8lA7A1w40W74eJWyTXUtqAxMe2ZuX+lt2iprYknq2gcvZAQ
-jGs9XwzKfA5lM8Aqta1anr4dPgKa1VNx1Tk0lRU548O/OO9+s7tENtHP5C4ii9uc
-EPTq8V0vm2VbZOW17Yfw6a7RlxEvHP3JorECUvQwgYUSwgjQ2LLBEsCVpWo9w3z6
-ffCbz9X6JJ8DeqKS524o1RMyifdGgynnB8zVYsLwnEPTp5mFDec5+jWLjTCO/m+e
-IiGuaeeUBSG+oLREDjhw+bkb3wY/MGZsC546tOsKRQKBgQDW4XhAA5ES5ZNG5yMC
-rvBF1qtHFXxd060kn7Ndz6oGkGuZ99G0+NXHuaSP3CqEuOYdg2NS2LX32EHhwnFF
-/uRR4UKHLKJL/Ai1jk8/L+7sQSezzzW/Mek5v4lxH9hflfR2zH99Qb5Zemld5I1f
-rBuEGvLUTfv1nGCD+5PPZWnwCwKBgQDOCJGiSV4gozTO+Uq9yIuWJ9JB5JpM6IVF
-CNxmBseFLNZcnKb/Bl/NTH87Y7uk4r6nQ0VMfwv+dwd+wa/y0eau92T+PXo2sspp
-vlwGPP5RrcsDpOl5jiT022/MI9ybgnjNWFE3bA4DuCNua49LRTxW8Q1Leiu740EU
-XcnrFMecrwKBgBX5bMCvHLDgBVWk4XGuzid2MoHMcrFtqjEqm78mM28EadyO+UUW
-hVYtZ+TGURrNhcrS2t9oBgPYe7RInCjaTiMJdDI6oEZA+esHKJd/oWFLsHG06Pwq
-cH1VVwrYhNoRjbRwaUE37e1clVXiv4pfIVk7IEYRy4hse3pDyfPVnSXNAoGBAKX4
-7SiopbTxBId+9yCvPxM0/QGr4Ej4PvN/0dw2td+oYP62CykBv4coio4TJ4QKTL99
-R4P6DHVu+ZC5Ar4/LO/hx2+vopYRrVFF0egMlmrB7/r9jD8prMe7RfJTKVH05s+0
-x6g32YpReelnqEVgft0izizxO+3dgf2gGBrR4INtAoGAIC3t93txnUNlRu0He6mL
-alFBjeDBl80/bhM74Aqo0veAHHwNZw5xg4dSwe5ydv5Ei6fLl5A4mqInPfRJhEVe
-WpuPlhWSprWv6eunCzG1huWrda4/0aXiOc/n5mdHAZ6v7sBrKEWWSiZlZ6+jay5M
-adNVFeXMFuwC0t7u0nUTQss=
------END PRIVATE KEY-----
-    EOS
-  }
+  include FixturesHelper
 
-  let(:ssl_cert2) { <<-EOS
------BEGIN CERTIFICATE-----
-MIIDQzCCAiugAwIBAgIJAOU1G4gSj6nYMA0GCSqGSIb3DQEBCwUAMDgxCjAIBgNV
-BAMMASoxHTAbBgNVBAoMFE15IENvbXBhbnkgTmFtZSBMVEQuMQswCQYDVQQGEwJV
-UzAeFw0xNjA2MDMwNjU2MTdaFw0xOTA1MTkwNjU2MTdaMDgxCjAIBgNVBAMMASox
-HTAbBgNVBAoMFE15IENvbXBhbnkgTmFtZSBMVEQuMQswCQYDVQQGEwJVUzCCASIw
-DQYJKoZIhvcNAQEBBQADggEPADCCAQoCggEBAK4TvlMa3/9YK1aLSWBh1QPGulQd
-aYLoCSDYoTMv0YOO4lLDPBkU6fzjwWX44nesBjUmN61QxBkpGNTs9x6pNvd4YI7N
-arhxSljROf42vNWkoVKl0Ls3fgUxMAcbFYf38i5PLzVLebsIZR2+sVe6QdwWAame
-nhlEE1ubnx46xROCTLkjfzLlYdSJBNPx8gKovgf31gWU9dtVrdkBclHmglspXZt0
-removed_to_invalidate_certs
-Qi89hSFKjDTFeovydxbaOR3k5PKqOFD1Lou9Ho87TeLBNNYkA16IdJ63dLMCAwEA
-AaNQME4wHQYDVR0OBBYEFNO0I5ogOcgUbWmaBj1hA8qt7F0rMB8GA1UdIwQYMBaA
-FNO0I5ogOcgUbWmaBj1hA8qt7F0rMAwGA1UdEwQFMAMBAf8wDQYJKoZIhvcNAQEL
-BQADggEBAHpJiP8ZblJmEuSP0lAJRovTPGhKZA4Pgpa9zimETCruBTkTZyCcNwD3
-htHgrqkCieoV5RK5juyHVQo5GiVptcWxVSuGgr9tKtWTYlfB0xkRRT9No0bjT9J8
-cGTZm+lZyQ85AuwOPSe1wFUDPuLu8xJVPJoIeDNaKqjZleVZUNafPSKRWhi0X6rt
-JmwgQdUBqRgZYHL6Zpcr2E5oyc4tL10pYcIQchyDHg0IHyVb/xz072RFRKj0zP4A
-2wVolufLJCFVbc8g1vEDgRjsuGLN55bJ0CTsn14GcOLsBntqKYyKm6lwV3+dDRM/
-AacJXcMY+aRv/l5fNl0oMRcZpRr3gew=
------END CERTIFICATE-----
------BEGIN PRIVATE KEY-----
-MIIEvgIBADANBgkqhkiG9w0BAQEFAASCBKgwggSkAgEAAoIBAQCuE75TGt//WCtW
-i0lgYdUDxrpUHWmC6Akg2KEzL9GDjuJSwzwZFOn848Fl+OJ3rAY1JjetUMQZKRjU
-7PceqTb3eGCOzWq4cUpY0Tn+NrzVpKFSpdC7N34FMTAHGxWH9/IuTy81S3m7CGUd
-vrFXukHcFgGpnp4ZRBNbm58eOsUTgky5I38y5WHUiQTT8fICqL4H99YFlPXbVa3Z
-AXJR5oJbKV2bdAnWkLO2NbpK72+VsjV1wiZXMr44aQ67dZwdZZ11eWZyjfcrXQ2z
-f6NxhRlzJg/ItkIvPYUhSow0xXqL8ncW2jkd5OTyqjhQ9S6LvR6PO03iwTTWJANe
-iHSet3SzAgMBAAECggEBAIo8y4ubb/6Kuf/EJMURa+PP0PAzWzLFqVoYLgtEEhFz
-Sm+G8xbH8PkOtOqRtuZqCZPzgYt09AU3Ca0tcSE8J5ZmVeeRYQqPjQbzQCaMuXC/
-iAzl+NhzvPPKl+VMsNCFKiF0aHzeLxFEHWh9or+T/fEU2MUmXU6bLPQ2pSmQaiiO
-pEDH0d5xuWP90LgfPJoKcBlai140Ml+gLTnTfBIElQg06TiSSQM2yVfF5sz7Sbe2
-pjTqyVNDP01pBoUpR2BAB/JbeqaWM8jnnIi+35uE1kvttq97T3WfBHcW6j7RN5N8
-HmsxDcG8GPV/6Z7j5ZGHACsQsI6bSbXdFACDOM4e74ECgYEA54I0Tut4NBlI0RkD
-removed_to_invalidate_certs
-v4ZWS2blGUguFGybgyaeJemqW+CdcBTzglsOXDi4C1NrLqgX3+c8PULsN0wns5B0
-KoRU+oBrK/coPT1/J0cnLWqdfcMCgYEAwH4o7HIk8zour+7f1fNB7642dbndCQut
-c+Kf48WDQpCOLCHvHujOY92XCVkEVP63lsc/JJCr9s8fxnUIX2z5/bwpKZn4f4Zy
-fzwslzIWCLXAyPTHaux9u+8vtJRTPaQ0YYOigSn1xdLu5Xu/761jStQTs1i4MN3P
-VI68gffWDlECgYEA4FhAAn6TRMF/3AmGqOGbJeibbaACp8FAe4x5qJhIz7Ekau0R
-gRrAds6IgQ2O1w0dWTXmBsRdriOSxz/+4If5FibHOoHFDcvVw/lnZkwS5+g6CUR0
-Wc2Nk/bu+yLCijsgr7ywlplEua2WB5+jwxPsGbjaoodnujjfAJwmLg/UQOsCgYAq
-OAF1yps8FZjD0ZqabF4b2ZPsQjWulDcY4a274Ugmw1nLaC3wE5Og56sGy9VdZviR
-Q2Yf+PMekNMhTe3mMBqsgiZtD24nWi+mpGYLS1r10hdUfAt48iGppI5MBvQy4t7y
-PFLaDX/wQZFQF9JDGT5b3SPtBBpx7VRZ8Wx6/Qaf4QKBgDN7nX2YAt0t60kFzL2V
-hdSuTbjdDTNYALHrPlOiUV0LXOWSpeJpjI7BbFYbwEXHWyJ6XJs/uS1pX9AfglXY
-KNjEBaOzuTkyIX1THmpnt9417EVQeCYYbMvnKvzhVi32Enr5p8Y5t8i75lrfpvta
-XxGBmgtsa++i6DvXUp/Jv1Xy
------END PRIVATE KEY-----
-    EOS
-  }
+  let(:ssl_bundle1) { fixture('ssl/bundle1.pem').rstrip }
+  let(:ssl_bundle2_invalid) { fixture('ssl/bundle2_invalid.pem').rstrip }
+  let(:ssl_test1) { fixture('ssl/test1.pem').rstrip }
 
-  let(:ssl_certs) { [ssl_cert1, ssl_cert2].join("\n") }
+  describe '#split_certs' do
+    it 'returns an array of strings' do
+      expect(subject.split_certs([ssl_bundle1, ssl_bundle2_invalid].join("\n"))).to eq [
+        ssl_bundle1.rstrip,
+        ssl_bundle2_invalid.rstrip,
+      ]
+    end
 
-  describe '#split_and_write' do
-    it 'splits and writes the certs' do
-      expect(subject).to receive(:write_cert).once.with(ssl_cert1.rstrip, 'cert1_gen')
+    it 'returns an empty array for an empty string' do
+      expect(subject.split_certs('')).to eq []
+    end
+  end
 
-      subject.split_and_write(ssl_certs)
+  describe '#to_h' do
+    subject { described_class.new(env) }
+
+    context 'with an empty env' do
+      let(:env) { {
+
+      } }
+
+      it 'returns an empty hash' do
+        expect(subject.to_h).to eq({})
+      end
+    end
+
+    context 'with an empty SSL_CERTS env' do
+      let(:env) { {
+        'SSL_CERTS' => '',
+      } }
+
+      it 'returns an empty hash' do
+        expect(subject.to_h).to eq({})
+      end
+    end
+
+    context 'with SSL_CERTS' do
+      let(:env) { {
+        'SSL_CERTS' => [ssl_bundle1, ssl_bundle2_invalid].join("\n"),
+      } }
+
+      it 'returns a hash with the valid cert' do
+        expect(subject.to_h).to eq(
+          'cert1_gen' => ssl_bundle1,
+        )
+      end
+    end
+
+    context 'with SSL_CERTS + SSL_CERT_*' do
+      let(:env) { {
+        'SSL_CERTS' => [ssl_bundle1, ssl_bundle2_invalid].join("\n"),
+        'SSL_CERT_test1' => ssl_test1,
+
+      } }
+
+      it 'returns a hash with the valid cert' do
+        expect(subject.to_h).to eq(
+          'cert1_gen' => ssl_bundle1,
+          'SSL_CERT_test1' => ssl_test1,
+        )
+      end
+    end
+
+    context 'with SSL_CERT_*' do
+      let(:env) { {
+        'SSL_CERT_bundle1' => ssl_bundle1,
+        'SSL_CERT_bundle2' => ssl_bundle2_invalid,
+      } }
+
+      it 'returns a hash with the valid cert' do
+        expect(subject.to_h).to eq(
+          'SSL_CERT_bundle1' => ssl_bundle1,
+        )
+      end
     end
   end
 end

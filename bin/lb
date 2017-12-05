@@ -5,15 +5,8 @@ require_relative '../lib/kontena_lb'
 
 puts "~~ Kontena LoadBalancer ~~\n\n"
 
-ssl_certs_bundle = ENV['SSL_CERTS']
-ssl_certs = ENV.select{|env, value| env.start_with? 'SSL_CERT_' }
+Kontena::CertManager.boot
 
-if ssl_certs_bundle || !ssl_certs.empty?
-  cert_splitter = Kontena::CertSplitter.new
-  cert_splitter.setup
-  cert_splitter.split_and_write(ssl_certs_bundle)
-  cert_splitter.write_certs(ssl_certs)
-end
 supervisor = Kontena::Actors::LbSupervisor.spawn!(name: 'lb_supervisor', link: true)
 supervisor << :start
 
