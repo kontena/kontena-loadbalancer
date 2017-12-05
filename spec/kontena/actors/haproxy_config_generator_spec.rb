@@ -25,7 +25,7 @@ describe Kontena::Actors::HaproxyConfigGenerator do
     it 'generates service object with virtual_path' do
       node.children << double(:keep_virtual_path, key: "#{node.key}/virtual_path", value: '/api')
       service = subject.generate_service(node)
-      expect(service.virtual_path).to eq('/api')
+      expect(service.virtual_paths).to eq(['/api'])
     end
 
     it 'generates service object with keep_virtual_path' do

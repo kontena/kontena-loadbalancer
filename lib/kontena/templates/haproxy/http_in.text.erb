@@ -23,17 +23,17 @@ listen http-in
     acl host_<%= service.name %> hdr(host) -i <%= virtual_host %>
     <% end %>
   <% end %>
-  <% if service.virtual_path %>
-    acl host_<%= service.name %>_virtual_path url_beg <%= service.virtual_path %>
+  <% if service.virtual_paths? %>
+    acl host_<%= service.name %>_virtual_path url_beg <%= service.virtual_paths.join(' ') %>
   <% end %>
 <% end %>
 
-<% services.select { |s| s.virtual_hosts.size > 0 && s.virtual_path }.each do |service| %>
+<% services.select { |s| s.virtual_hosts? && s.virtual_paths? }.each do |service| %>
     use_backend <%= service.name %> if host_<%= service.name %> host_<%= service.name %>_virtual_path
 <% end %>
-<% services.select { |s| s.virtual_hosts.size > 0 && s.virtual_path.nil? }.each do |service| %>
+<% services.select { |s| s.virtual_hosts? && !s.virtual_paths? }.each do |service| %>
     use_backend <%= service.name %> if host_<%= service.name %>
 <% end %>
-<% services.select { |s| s.virtual_path && s.virtual_hosts.size == 0 }.each do |service| %>
+<% services.select { |s| s.virtual_paths? && !s.virtual_hosts? }.each do |service| %>
     use_backend <%= service.name %> if host_<%= service.name %>_virtual_path
 <% end %>

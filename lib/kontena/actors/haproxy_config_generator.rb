@@ -66,7 +66,7 @@ module Kontena::Actors
         when :virtual_hosts
           service.virtual_hosts = c.value.split(',').compact
         when :virtual_path
-          service.virtual_path = c.value unless c.value.empty?
+          service.virtual_paths = c.value.split(',').compact if c.value
         when :keep_virtual_path
           service.keep_virtual_path = c.value
         when :cookie

@@ -5,7 +5,7 @@ module Kontena::Models
     include CommonService
 
     attr_accessor :virtual_hosts,
-                  :virtual_path,
+                  :virtual_paths,
                   :keep_virtual_path,
                   :health_check_uri,
                   :cookie,
@@ -15,7 +15,7 @@ module Kontena::Models
       super
       @balance = 'roundrobin'
       @virtual_hosts = []
-      @virtual_path = nil
+      @virtual_paths = []
       @keep_virtual_path = false
       @health_check_uri = nil
       @cookie = nil
@@ -30,8 +30,8 @@ module Kontena::Models
       @virtual_hosts.size > 0
     end
 
-    def virtual_path?
-      !@virtual_path.to_s.empty?
+    def virtual_paths?
+      @virtual_paths.size > 0
     end
 
     def cookie?
