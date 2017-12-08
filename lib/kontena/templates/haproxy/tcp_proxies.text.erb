@@ -1,7 +1,7 @@
 <% services.each do |service| %>
 <% if service.external_port %>
 listen <%= service.name %>
-    bind *:<%= service.external_port %>
+    bind *:<%= service.external_port %><% if ENV['KONTENA_LB_ACCEPT_PROXY'] %> accept-proxy<% end %>
     mode tcp
     <% service.custom_settings.each do |setting| %>
     <%= setting %>
