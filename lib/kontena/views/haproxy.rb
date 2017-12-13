@@ -1,4 +1,5 @@
 require 'erb'
+require_relative 'common'
 require_relative 'http_in'
 require_relative 'http_backends'
 require_relative 'tcp_proxies'
@@ -6,6 +7,7 @@ require_relative 'tcp_proxies'
 module Kontena::Views
   class Haproxy
     include Hanami::View
+    include Kontena::Views::Common
 
     format :text
     template 'haproxy/main'

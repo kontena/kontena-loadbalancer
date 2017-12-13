@@ -29,7 +29,7 @@ defaults
     <% end %>
     <% end %>
 
-<% if services.size > 0 %>
+<% if services.size > 0 || ssl? || health_uri? %>
 <%= http_in %>
 <% end %>
 
