@@ -55,6 +55,37 @@ describe Kontena::Views::HttpIn do
         )
         expect(output.match(/alpn h2/)).to be_truthy
       end
+
+      it 'allows to disable http2 support' do
+        allow(ENV).to receive(:[])
+        allow(ENV).to receive(:[]).with('KONTENA_LB_HTTP2').and_return('false')
+        allow(ENV).to receive(:[]).with('SSL_CERTS').and_return('certs')
+        output = described_class.render(
+          format: :text,
+          services: []
+        )
+        expect(output.match(/alpn h2/)).to be_falsey
+      end
+    end
+
+    context 'monitor-uri' do
+      it 'does not add monitor-uri by default' do
+        output = described_class.render(
+          format: :text,
+          services: []
+        )
+        expect(output.match(/monitor-uri/)).to be_falsey
+      end
+
+      it 'adds monitor-uri if health uri is set' do
+        allow(ENV).to receive(:[])
+        allow(ENV).to receive(:[]).with('KONTENA_LB_HEALTH_URI').and_return('/__health')
+        output = described_class.render(
+          format: :text,
+          services: []
+        )
+        expect(output.match(/monitor-uri \/__health/)).to be_truthy
+      end
     end
   end
 end

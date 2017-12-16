@@ -1,8 +1,8 @@
 listen http-in
-    bind *:80<% if ENV['KONTENA_LB_ACCEPT_PROXY'] %> accept-proxy<% end %>
+    bind *:80<% if accept_proxy? %> accept-proxy<% end %>
     http-request replace-header Host (.*):.* \1
     <% if ssl? %>
-    bind *:443 ssl crt /etc/haproxy/certs/ no-sslv3<% if ENV['KONTENA_LB_ACCEPT_PROXY'] %> accept-proxy<% end %> alpn h2,http/1.1
+    bind *:443 ssl crt /etc/haproxy/certs/ no-sslv3<% if accept_proxy? %> accept-proxy<% end %><% if http2? %> alpn h2,http/1.1<% end %>
     reqadd X-Forwarded-Proto:\ https if { ssl_fc }
     reqadd X-Forwarded-Port:\ 443 if { ssl_fc }
     <% end %>
@@ -10,8 +10,8 @@ listen http-in
     errorfile 502 /etc/haproxy/errors/502.http
     errorfile 503 /etc/haproxy/errors/503.http
 
-    <% if ENV['KONTENA_LB_HEALTH_URI'] %>
-    monitor-uri <%= ENV['KONTENA_LB_HEALTH_URI'] %>
+    <% if health_uri %>
+    monitor-uri <%= health_uri %>
     errorfile 200 /etc/haproxy/errors/200.http
     <% end %>
 
