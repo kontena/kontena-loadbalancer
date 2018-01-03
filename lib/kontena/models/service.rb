@@ -8,6 +8,7 @@ module Kontena::Models
                   :virtual_paths,
                   :keep_virtual_path,
                   :health_check_uri,
+                  :health_check_port,
                   :cookie,
                   :basic_auth_secrets
 
@@ -18,6 +19,7 @@ module Kontena::Models
       @virtual_paths = []
       @keep_virtual_path = false
       @health_check_uri = nil
+      @health_check_port = nil
       @cookie = nil
       @basic_auth_secrets = nil
     end
@@ -45,5 +47,6 @@ module Kontena::Models
     def health_check?
       !@health_check_uri.nil?
     end
+
   end
 end

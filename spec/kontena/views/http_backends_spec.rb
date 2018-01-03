@@ -30,7 +30,7 @@ describe Kontena::Views::HttpBackends do
       end
     end
 
-    context 'cookies' do 
+    context 'cookies' do
       it 'does not add cookie policy if cookie is not set' do
         services = [
           Kontena::Models::Service.new('foo').tap { |s|
@@ -77,7 +77,7 @@ describe Kontena::Views::HttpBackends do
     end
 
     context 'basic auth' do
-      it 'adds basic auth config' do 
+      it 'adds basic auth config' do
         services = [
           Kontena::Models::Service.new('foo').tap { |s|
             s.basic_auth_secrets = 'user admin insecure-password passwd'
@@ -107,6 +107,53 @@ describe Kontena::Views::HttpBackends do
         )
         expect(output.match(/http-request auth realm foo/)).to be_falsey
         expect(output.match(/userlist auth_users_foo/)).to be_falsey
+      end
+    end
+
+    context 'health check' do
+      it 'adds healthcheck uri' do
+        services = [
+          Kontena::Models::Service.new('foo').tap { |s|
+            s.health_check_uri = '/healthz'
+            s.upstreams = [Kontena::Models::Upstream.new('foo-1', '10.81.3.2:8080')]
+          }
+        ]
+        output = described_class.render(
+          format: :text,
+          services: services,
+          tcp_services: []
+        )
+        expect(output.match(/option httpchk GET \/healthz/)).to be_truthy
+      end
+
+      it 'uses given health_check port for http checks' do
+        services = [
+          Kontena::Models::Service.new('foo').tap { |s|
+            s.health_check_port = 9090
+            s.upstreams = [Kontena::Models::Upstream.new('foo-1', '10.81.3.2:8080')]
+          }
+        ]
+        output = described_class.render(
+          format: :text,
+          services: services,
+          tcp_services: []
+        )
+
+        expect(output.match(/server foo-1 10.81.3.2:8080 check port 9090/)).to be_truthy
+      end
+
+      it 'defaults to backend port for http checks' do
+        services = [
+          Kontena::Models::Service.new('foo').tap { |s|
+            s.upstreams = [Kontena::Models::Upstream.new('foo-1', '10.81.3.2:8080')]
+          }
+        ]
+        output = described_class.render(
+          format: :text,
+          services: services,
+          tcp_services: []
+        )
+        expect(output.match(/server foo-1 10.81.3.2:8080 check/)).to be_truthy
       end
     end
   end

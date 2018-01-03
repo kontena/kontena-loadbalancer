@@ -31,7 +31,7 @@ backend <%= service.name %>
     <% end %>
 
     <% service.upstreams.each do |upstream| %>
-    server <%= upstream.name %> <%= upstream.value %> check <% if service.cookie? %>cookie <%= upstream.name %><% end %>
+    server <%= upstream.name %> <%= upstream.value %> check <% if service.health_check_port %>port <%= service.health_check_port %> <% end %><% if service.cookie? %>cookie <%= upstream.name %><% end %>
     <% end %>
 
 <% if service.basic_auth? %>

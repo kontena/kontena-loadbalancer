@@ -36,3 +36,19 @@ setup() {
   assert_output_contains "option httpchk GET /health"
 
 }
+
+
+@test "supports health check port setting for balanced service" {
+  etcdctl set /kontena/haproxy/lb/services/service-a/virtual_path /a/
+  etcdctl set /kontena/haproxy/lb/services/service-a/health_check_uri /health
+  etcdctl set /kontena/haproxy/lb/services/service-a/health_check_port 9292
+  etcdctl set /kontena/haproxy/lb/services/service-a/upstreams/server service-a:9292
+  sleep 1
+  run curl -k -s https://localhost:8443/a/
+  [ "${lines[0]}" = "service-a" ]
+
+  run config
+  assert_output_contains "option httpchk GET /health"
+  assert_output_contains "server server service-a:9292 check port 9292"
+
+}

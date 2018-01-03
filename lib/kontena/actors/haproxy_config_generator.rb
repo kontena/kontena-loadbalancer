@@ -75,6 +75,8 @@ module Kontena::Actors
           service.basic_auth_secrets = c.value
         when :health_check_uri
           service.health_check_uri = c.value
+        when :health_check_port
+          service.health_check_port = c.value
         when :custom_settings
           service.custom_settings = c.value.split("\n")
         else
