@@ -8,6 +8,10 @@ module Kontena::Views
     format :text
     template 'haproxy/http_in'
 
+    def acme_challenges?
+      Kontena::AcmeChallenges.configured?
+    end
+
     def accept_proxy?
       ENV['KONTENA_LB_ACCEPT_PROXY']
     end

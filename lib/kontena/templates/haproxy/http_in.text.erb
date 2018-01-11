@@ -15,6 +15,11 @@ listen http-in
     errorfile 200 /etc/haproxy/errors/200.http
     <% end %>
 
+    <% if acme_challenges? %>
+    acl acme_challenge path_beg /.well-known/acme-challenge/
+    use_backend acme_challenge if acme_challenge
+    <% end %>
+
 <% services.each do |service| %>
   <% service.virtual_hosts.each do |virtual_host| %>
     <% if virtual_host.start_with?('*.') %>

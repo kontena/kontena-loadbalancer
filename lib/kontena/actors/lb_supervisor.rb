@@ -36,9 +36,17 @@ module Kontena::Actors
       ENV.fetch('ETCD_PATH')
     end
 
+    def acme_challenges
+      @acme_challenges ||= Kontena::AcmeChallenges.boot
+    end
+
     def start
       @syslog_server = SyslogServer.spawn!(name: 'syslog_server', supervise: true)
       @syslog_server << :start
+      @acme_challenge_server = AcmeChallengeServer.spawn!(name: 'acme_challenge_server', supervise: true, args: [
+          acme_challenges,
+      ])
+      @acme_challenge_server << :start
 
       @config_generator = HaproxyConfigGenerator.spawn!(name: 'haproxy_config_generator', supervise: true)
       @config_writer = HaproxyConfigWriter.spawn!(name: 'haproxy_config_writer', supervise: true)

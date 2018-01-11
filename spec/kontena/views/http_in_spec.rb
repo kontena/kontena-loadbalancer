@@ -87,5 +87,32 @@ describe Kontena::Views::HttpIn do
         expect(output.match(/monitor-uri \/__health/)).to be_truthy
       end
     end
+
+    describe 'acme_challenges?' do
+      let(:output) { described_class.render(
+        format: :text,
+        services: []
+      ) }
+
+      context 'when not configured' do
+        before do
+          allow(Kontena::AcmeChallenges).to receive(:configured?).and_return(false)
+        end
+
+        it 'does not configure any ACL' do
+          expect(output).to_not match /use_backend acme_challenge/
+        end
+      end
+
+      context 'when configured' do
+        before do
+          allow(Kontena::AcmeChallenges).to receive(:configured?).and_return(true)
+        end
+
+        it 'configures the ACL' do
+          expect(output).to match /use_backend acme_challenge/
+        end
+      end
+    end
   end
 end

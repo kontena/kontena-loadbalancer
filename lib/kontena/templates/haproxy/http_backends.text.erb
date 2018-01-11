@@ -1,3 +1,10 @@
+<% if acme_challenges? %>
+backend acme_challenge
+  option forwardfor
+
+  server localhost 127.0.0.1:54321
+
+<% end %>
 <% services.each do |service| %>
 backend <%= service.name %>
     option forwardfor

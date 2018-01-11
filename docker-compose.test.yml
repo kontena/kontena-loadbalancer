@@ -17,6 +17,9 @@ lb:
     KONTENA_LB_CUSTOM_SETTINGS: |
       option dontlognull
 
+    ACME_CHALLENGE_LoqXcYV8q5ONbJQxbmR7SCTNo3tiAXDfowyjxAjEuX0: |
+      LoqXcYV8q5ONbJQxbmR7SCTNo3tiAXDfowyjxAjEuX0.9jg46WB3rR_AHD-EBXdN7cBkH1WOu0tA3M9fm21mqTI
+      
     SSL_CERT_test1: |
       -----BEGIN CERTIFICATE-----
       MIIC9TCCAd2gAwIBAgIJAK94fUzfHt1pMA0GCSqGSIb3DQEBCwUAMBExDzANBgNV

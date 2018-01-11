@@ -156,5 +156,33 @@ describe Kontena::Views::HttpBackends do
         expect(output.match(/server foo-1 10.81.3.2:8080 check/)).to be_truthy
       end
     end
+
+    describe 'acme_challenges?' do
+      let(:output) { described_class.render(
+        format: :text,
+        services: [],
+        tcp_services: []
+      ) }
+
+      context 'when not configured' do
+        before do
+          allow(Kontena::AcmeChallenges).to receive(:configured?).and_return(false)
+        end
+
+        it 'does not configure any ACL' do
+          expect(output).to_not match /backend acme_challenge/
+        end
+      end
+
+      context 'when configured' do
+        before do
+          allow(Kontena::AcmeChallenges).to receive(:configured?).and_return(true)
+        end
+
+        it 'configures the ACL' do
+          expect(output).to match /backend acme_challenge/
+        end
+      end
+    end
   end
 end
