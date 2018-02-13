@@ -25,5 +25,20 @@ module Kontena::Views
         _raw uri
       end
     end
+
+    def sorted_services
+      services.sort{|a, b|
+        if a.virtual_hosts != b.virtual_hosts
+          # reverse order, empty list goes last
+          b.virtual_hosts <=> a.virtual_hosts
+        elsif a.virtual_paths != b.virtual_paths
+          # reverse order, empty list goes last
+          b.virtual_paths <=> a.virtual_paths
+        else
+          # alphabetically on service name if duplicates
+          a.name <=> b.name
+        end
+      }
+    end
   end
 end

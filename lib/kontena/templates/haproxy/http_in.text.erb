@@ -33,12 +33,12 @@ listen http-in
   <% end %>
 <% end %>
 
-<% services.select { |s| s.virtual_hosts? && s.virtual_paths? }.each do |service| %>
-    use_backend <%= service.name %> if host_<%= service.name %> host_<%= service.name %>_virtual_path
-<% end %>
-<% services.select { |s| s.virtual_hosts? && !s.virtual_paths? }.each do |service| %>
-    use_backend <%= service.name %> if host_<%= service.name %>
-<% end %>
-<% services.select { |s| s.virtual_paths? && !s.virtual_hosts? }.each do |service| %>
-    use_backend <%= service.name %> if host_<%= service.name %>_virtual_path
+<% sorted_services.each do |service| %>
+  <% if service.virtual_hosts? && service.virtual_paths? %>
+      use_backend <%= service.name %> if host_<%= service.name %> host_<%= service.name %>_virtual_path
+  <% elsif service.virtual_hosts? %>
+      use_backend <%= service.name %> if host_<%= service.name %>
+  <% elsif service.virtual_paths? %>
+      use_backend <%= service.name %> if host_<%= service.name %>_virtual_path
+  <% end %>
 <% end %>
