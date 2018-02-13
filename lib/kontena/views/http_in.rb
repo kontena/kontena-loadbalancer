@@ -26,13 +26,16 @@ module Kontena::Views
       end
     end
 
+    # sort services from most specific match to least specific match
+    #
+    # @return [Array<Kontena::Models::Service>]
     def sorted_services
       services.sort{|a, b|
         if a.virtual_hosts != b.virtual_hosts
-          # reverse order, empty list goes last
+          # reverse order, empty list goes last, wildcards go last
           b.virtual_hosts <=> a.virtual_hosts
         elsif a.virtual_paths != b.virtual_paths
-          # reverse order, empty list goes last
+          # reverse order, empty list goes last, longer prefixes go first
           b.virtual_paths <=> a.virtual_paths
         else
           # alphabetically on service name if duplicates
