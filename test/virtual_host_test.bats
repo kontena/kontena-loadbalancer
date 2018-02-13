@@ -4,9 +4,7 @@ load "common"
 
 
 setup() {
-  etcdctl rm --recursive /kontena/haproxy/lb/services/service-a || true
-  etcdctl rm --recursive /kontena/haproxy/lb/services/service-b || true
-  etcdctl rm --recursive /kontena/haproxy/lb/services/service-c || true
+  etcdctl rm --recursive /kontena/haproxy/lb/services || true
 }
 
 
