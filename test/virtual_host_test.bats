@@ -128,6 +128,24 @@ setup() {
   [ "${lines[0]}" = "service-b" ]
 }
 
+@test "prioritizes specific subdomain over wildcard" {
+  etcdctl set /kontena/haproxy/lb/services/service-b/virtual_hosts *.bar.com
+  etcdctl set /kontena/haproxy/lb/services/service-b/upstreams/server service-b:9292
+
+  etcdctl set /kontena/haproxy/lb/services/service-c/virtual_hosts test.bar.com
+  etcdctl set /kontena/haproxy/lb/services/service-c/upstreams/server service-c:9292
+
+  sleep 1
+
+  run curl -s -H "Host: www.bar.com" http://localhost:8180/
+  [ "$status" -eq 0 ]
+  [ "${lines[0]}" = "service-b" ]
+
+  run curl -s -H "Host: test.bar.com" http://localhost:8180/
+  [ "$status" -eq 0 ]
+  [ "${lines[0]}" = "service-c" ]
+}
+
 @test "prioritizes first vhost+vpath, then vhost and finally vpath" {
   etcdctl set /kontena/haproxy/lb/services/service-a/virtual_path /
   etcdctl set /kontena/haproxy/lb/services/service-a/upstreams/server service-a:9292
