@@ -1,11 +1,12 @@
-FROM haproxy:1.8.3-alpine
+FROM haproxy:1.8.14-alpine
 MAINTAINER Kontena, Inc. <info@kontena.io>
 
 ENV STATS_PASSWORD=secret \
     PATH="/app/bin:${PATH}"
 
-RUN apk update && apk --update add bash tzdata ruby ruby-irb ruby-bigdecimal \
-    ruby-io-console ruby-json ruby-rake ca-certificates libssl1.0 openssl libstdc++
+RUN apk update && apk --update add bash tzdata ruby ruby-irb ruby-bigdecimal  \
+    ruby-io-console ruby-json ruby-rake ca-certificates libssl1.0 openssl libstdc++ \
+    ruby-webrick ruby-etc
 
 ADD Gemfile Gemfile.lock /app/
 
